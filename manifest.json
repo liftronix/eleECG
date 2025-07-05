@@ -1,0 +1,73 @@
+{
+  "version": "0.2.0",
+  "files": {
+    "config.json": {
+      "sha256": "fdbde9200988345eb57ae19b70c74901920d6f49e76af1cac294242344c8f08e",
+      "size": 79
+    },
+    "main.py": {
+      "sha256": "c52e925026950f0d81d8b8bd97b42950779952301e38749be4541a2358cb6fc7",
+      "size": 4426
+    },
+    "version.txt": {
+      "sha256": "911fc0c48cb0c70601db5775a9bef1b740dc4cc9f9b46389b9f0563fe7eb94d7",
+      "size": 5
+    },
+    "lib/config_loader.py": {
+      "sha256": "6a6d5bb016282003d7bf276cceacf4ee6b43dd38e7c00b4195521ddb84d7de02",
+      "size": 241
+    },
+    "lib/core1_manager.py": {
+      "sha256": "06e56648ba59d7d479e88c7e43de23719ca3d6856c5512abc1382b7bf81c6564",
+      "size": 3218
+    },
+    "lib/datalogger.py": {
+      "sha256": "f5ea1ad6dd864554e4376517b890b7436715cb3ed7e726c4f91aaf4c7499dff4",
+      "size": 4672
+    },
+    "lib/ledblinker.py": {
+      "sha256": "1ceea55f767cf6eaadc7386ae9bed0c626523004813a25be5235390ff206c7cf",
+      "size": 1299
+    },
+    "lib/logger.py": {
+      "sha256": "1cc047f4ecb01e72e24510e7d06d89a1995d51e81ca40f0af480cdbe579de911",
+      "size": 2016
+    },
+    "lib/mpu6050_minimal.py": {
+      "sha256": "b779643954ca82915c478392ddcddfe65b6c7c63f8c124fa8eabe08d50ac14a0",
+      "size": 1541
+    },
+    "lib/ota.py": {
+      "sha256": "1b95f9b74c1f9b6c44f39550ca34674a9ffe65887acc219d0f0aaaff4ba5aacc",
+      "size": 10937
+    },
+    "lib/ota_manager.py": {
+      "sha256": "cd6c7218dfeaeca74cee0d7aa781ce5d81ff1e86a8ac1259ffc786d23471c58b",
+      "size": 3711
+    },
+    "lib/sdcard.py": {
+      "sha256": "5aa0839906790ce26c354fc6a79e5fe711e6df985e34ce7b6035b6193df8e2c1",
+      "size": 10088
+    },
+    "lib/sdcard_manager.py": {
+      "sha256": "61c388938b4c457bf56b572a0d75f22025b7a8d79866b599cf8782d279f5c2af",
+      "size": 4233
+    },
+    "lib/sensor_settings.py": {
+      "sha256": "45c74c6e1c065f9497ccb2802135c36985cd47ba626161a2eee39e8329b90cdc",
+      "size": 161
+    },
+    "lib/shared_state.py": {
+      "sha256": "c19a4c0b83ce370adf95b8519ab29665be29862cc63323973d374b34e7ebf6a4",
+      "size": 698
+    },
+    "lib/simplequeue.py": {
+      "sha256": "24e1047b02a44883cbde9eaf33a6da843a59bc90efb2bc788003a110f640dbbe",
+      "size": 833
+    },
+    "lib/wifi_manager.py": {
+      "sha256": "eb38aace3ce41b81b1571d24adc0dbe531571922d27c143497d73dceee26dbf1",
+      "size": 5175
+    }
+  }
+}
