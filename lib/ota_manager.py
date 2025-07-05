@@ -3,7 +3,7 @@ import machine, os, gc, asyncio
 import logger
 from ota import OTAUpdater
 
-REPO_URL = "https://raw.githubusercontent.com/liftronix/pi_pico_test/refs/heads/main"
+REPO_URL = "https://raw.githubusercontent.com/liftronix/eleECG/refs/heads/main"
 MIN_FREE_MEM = 100 * 1024
 FLASH_BUFFER = 16 * 1024
 
