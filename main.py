@@ -13,6 +13,7 @@ from ledblinker import LEDBlinker
 from wifi_manager import WiFiManager
 from sdcard_manager import SDCardManager
 from datalogger import DataLogger
+from laser_module import LaserModule
 from config_loader import load_config
 
 config = load_config()
@@ -101,6 +102,24 @@ async def drain_sensor_data(datalogger):
                 await datalogger.log(entry)
         await asyncio.sleep_ms(100)
 
+# Laser Polling
+async def drain_laser_data(laser, snapshot_ref, datalogger):
+    while True:
+        try:
+            snapshot = await laser.measure_and_log(tag="laser")
+            snapshot_ref.clear()
+            snapshot_ref.update(snapshot)
+
+            # Persist to SD via datalogger
+            seq = snapshot["seq"].get("laser")
+            value = snapshot["payload"].get("laser")
+            entry = f"[laser] Seq={seq} → {value}"
+            await datalogger.log(entry)
+
+        except Exception as e:
+            logger.warn(f"Laser: Polling error — {e}")
+        await asyncio.sleep_ms(500)
+
 # 🚀 Main Entry Point
 async def main():
     _thread.start_new_thread(core1_main, ())
@@ -116,7 +135,8 @@ async def main():
     asyncio.create_task(idle_task())
     asyncio.create_task(monitor())
     asyncio.create_task(check_and_download_ota(led))
-
+    
+    # SD Card and Data Logger
     sd = SDCardManager()
     await sd.mount()
     sync_config_if_changed()
@@ -125,6 +145,15 @@ async def main():
     datalogger = DataLogger(sd, buffer_size=10, flush_interval_s=5)
     asyncio.create_task(datalogger.run())
     asyncio.create_task(drain_sensor_data(datalogger))
+    
+    # Laser
+    laser = LaserModule()
+    laser_snapshot = {}  # Shared container for latest laser data
+    if not await laser.power_on():
+        logger.error("Laser: Initialization failed")
+    else:
+        await laser.get_status()
+        asyncio.create_task(drain_laser_data(laser, laser_snapshot, datalogger))
 
     while True:
         status = wifi.get_status()
