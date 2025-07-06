@@ -25,16 +25,14 @@ class Logger:
         try:
             if Logger._file_too_big():
                 rotation_id = Logger._increment_rotation_counter()
-                # Archive old log
+                archived = Logger.LOG_FILE + ".old"
                 try:
-                    archived = Logger.LOG_FILE + ".old"
-                    if os.path.exists(archived):
+                    if os.exists(archived):
                         os.remove(archived)
                     os.rename(Logger.LOG_FILE, archived)
                 except Exception as rotate_err:
                     sys.print_exception(rotate_err)
 
-                # Create fresh log with rotation info
                 with open(Logger.LOG_FILE, "w") as f:
                     f.write("🗂 Log rotated | Iteration #: {}\n".format(rotation_id))
 
@@ -65,7 +63,7 @@ class Logger:
     @staticmethod
     def _increment_rotation_counter():
         try:
-            if not os.path.exists(Logger.ROTATE_COUNTER_FILE):
+            if not os.exists(Logger.ROTATE_COUNTER_FILE):
                 with open(Logger.ROTATE_COUNTER_FILE, "w") as f:
                     f.write("1")
                 return 1
@@ -102,7 +100,7 @@ class Logger:
             print(f"{Logger._COLORS['ERROR']}[ERROR] {msg}{Logger._RESET}")
             Logger._write_log_file("ERROR", msg)
 
-# Aliases
+# Export aliases
 debug = Logger.debug
 info = Logger.info
 warn = Logger.warn
