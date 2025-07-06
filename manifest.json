@@ -1,5 +1,5 @@
 {
-  "version": "0.4.3",
+  "version": "0.4.4",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
@@ -10,7 +10,7 @@
       "size": 9241
     },
     "version.txt": {
-      "sha256": "0d7d4a7e618dcfadd92b24ffcef907da7622fc770819e2093af9399f37e6a8a2",
+      "sha256": "be1ac3a25f813e184f99d75e24337eb700a49f3c7008e823ed9640ce752efa4b",
       "size": 5
     },
     "lib/config_loader.py": {
@@ -38,8 +38,8 @@
       "size": 1299
     },
     "lib/logger.py": {
-      "sha256": "1d29789e2415cca96144e5919e4bdf3aa0bb6d169c9ab5d25c67e3be8974a5c1",
-      "size": 3585
+      "sha256": "4f38518cd5b3d12b7a863d1a28b1323cadf7e69f504c35522c4e4e799f7b84e4",
+      "size": 3675
     },
     "lib/mpu6050_minimal.py": {
       "sha256": "b779643954ca82915c478392ddcddfe65b6c7c63f8c124fa8eabe08d50ac14a0",

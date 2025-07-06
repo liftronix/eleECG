@@ -17,7 +17,7 @@ class Logger:
     }
 
     LOG_FILE = "/bootlog.txt"
-    MAX_LOG_SIZE = 10 * 1024  # 10 KB
+    MAX_LOG_SIZE = 100 * 1024  # 100 KB
     ROTATE_COUNTER_FILE = "/bootlog.iter"
 
     @staticmethod
@@ -55,6 +55,8 @@ class Logger:
     @staticmethod
     def _file_too_big():
         try:
+            if not Logger._file_exists(Logger.LOG_FILE):
+                return False
             return os.stat(Logger.LOG_FILE)[6] > Logger.MAX_LOG_SIZE
         except Exception as stat_err:
             sys.print_exception(stat_err)
