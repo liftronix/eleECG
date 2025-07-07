@@ -65,7 +65,7 @@ async def verify_ota_commit():
     logger.error("❌ OTA commit verification failed. Rolling back...")
     await ota.rollback()
 
-async def check_and_download_ota(led):
+async def check_and_download_ota(led, ota_lock):
     updater = OTAUpdater(REPO_URL)
     while True:
         logger.info("🔍 Checking for OTA update...")
@@ -78,20 +78,24 @@ async def check_and_download_ota(led):
                     logger.warn("🚫 Not enough flash space.")
                 else:
                     logger.info("📥 Downloading update...")
-                    progress_task = asyncio.create_task(show_progress(updater, led))
-                    if await updater.download_update():
-                        progress_task.cancel()
-                        led.value(1)
-                        with open("/ota_pending.flag", "w") as f:
-                            f.write("ready")
-                        for i in range(10, 0, -1):
-                            print(f"Rebooting in {i} seconds... Press Ctrl+C to cancel.")
-                            await asyncio.sleep(1)
-                        machine.reset()
-                    else:
-                        progress_task.cancel()
-                        led.value(0)
-                        logger.error("❌ Download failed.")
+                    ota_lock.clear()  # 🚫 Pause sensors
+                    try:
+                        progress_task = asyncio.create_task(show_progress(updater, led))
+                        if await updater.download_update():
+                            progress_task.cancel()
+                            led.value(1)
+                            with open("/ota_pending.flag", "w") as f:
+                                f.write("ready")
+                            for i in range(10, 0, -1):
+                                print(f"Rebooting in {i} seconds...")
+                                await asyncio.sleep(1)
+                            machine.reset()
+                        else:
+                            progress_task.cancel()
+                            led.value(0)
+                            logger.error("❌ Download failed.")
+                    finally:
+                        ota_lock.set()  # ✅ Resume sensors
             else:
                 logger.warn("🚫 Not enough memory for OTA.")
         else:

@@ -10,6 +10,9 @@ from ota_manager import (
     check_and_download_ota
 )
 
+ota_lock = asyncio.Event()
+ota_lock.set()  # Start with sensors enabled
+
 from uthingsboard.client import TBDeviceMqttClient
 from ledblinker import LEDBlinker
 from wifi_manager import WiFiManager
@@ -133,9 +136,10 @@ latest_sensor_data = {}
 latest_sensor_lock = asyncio.Lock()
 
 # 📤 Sensor Polling & Logging
-async def drain_sensor_data(datalogger):
+async def drain_sensor_data(datalogger, ota_lock):
     last_seq = {}
     while True:
+        await ota_lock.wait()  # ⛔ Block if OTA is active
         snapshot = get_sensor_snapshot()
         if not snapshot or "payload" not in snapshot or "seq" not in snapshot:
             await asyncio.sleep_ms(100)
@@ -165,8 +169,9 @@ async def drain_sensor_data(datalogger):
         await asyncio.sleep_ms(1000)
 
 # 🔦Laser Polling
-async def drain_laser_data(laser, snapshot_ref, datalogger):
+async def drain_laser_data(laser, snapshot_ref, datalogger, ota_lock):
     while True:
+        await ota_lock.wait()  # ⛔ Block if OTA is active
         try:
             snapshot = await laser.measure_and_log(tag="laser")
             snapshot_ref.clear()
@@ -194,9 +199,10 @@ async def drain_laser_data(laser, snapshot_ref, datalogger):
 # MQTT Publish
 mqtt_seq_counter = 0
 
-async def send_to_thingsboard(client):
+async def send_to_thingsboard(client, ota_lock):
     global mqtt_seq_counter
     while True:
+        await ota_lock.wait()  # ⛔ Block if OTA is active
         status = wifi.get_status()
         if status['Internet'] != 'Connected':
             logger.warn("🚫 No Internet. Telemetry not sent.")
@@ -244,7 +250,7 @@ async def main():
     logger.info(f"🧾 Running firmware version: {get_local_version()}")
     await apply_ota_if_pending(led)
     await verify_ota_commit()
-    asyncio.create_task(check_and_download_ota(led))
+    asyncio.create_task(check_and_download_ota(led, ota_lock))
     
     # SD Card and Data Logger
     sd = SDCardManager()
@@ -254,7 +260,7 @@ async def main():
 
     datalogger = DataLogger(sd, buffer_size=10, flush_interval_s=5)
     asyncio.create_task(datalogger.run())
-    asyncio.create_task(drain_sensor_data(datalogger))
+    asyncio.create_task(drain_sensor_data(datalogger, ota_lock))
     
     # Laser
     laser = LaserModule()
@@ -263,18 +269,20 @@ async def main():
         logger.error("Laser: Initialization failed")
     else:
         await laser.get_status()
-        asyncio.create_task(drain_laser_data(laser, laser_snapshot, datalogger))
+        asyncio.create_task(drain_laser_data(laser, laser_snapshot, datalogger, ota_lock))
     
     #MQTT Initialization
     mqttHost = config.get("mqtt").get("host")
     mqttKey = config.get("mqtt").get("key")
     client = TBDeviceMqttClient(mqttHost, access_token = mqttKey)
-    asyncio.create_task(send_to_thingsboard(client))
+    asyncio.create_task(send_to_thingsboard(client, ota_lock))
     
     while True:
         status = wifi.get_status()
         print(f"WiFi Status: {status['WiFi']}, Internet: {status['Internet']}")
         print(f"IP Address: {wifi.get_ip_address()}")
+        if not ota_lock.is_set():
+            logger.debug("📴 Sensor paused due to OTA activity")
         await asyncio.sleep(10)
 
 # 🧹 Graceful Shutdown
