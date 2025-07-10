@@ -2,6 +2,7 @@
 import machine, os, gc, asyncio
 import logger
 from ota import OTAUpdater
+from wifi_manager import wifi
 
 REPO_URL = "https://raw.githubusercontent.com/liftronix/eleECG/refs/heads/main"
 MIN_FREE_MEM = 100 * 1024
@@ -13,22 +14,26 @@ def get_local_version():
             return f.read().strip()
     except:
         return "0.0.0"
-
+    
+#---------------------------------------
 def has_enough_memory():
     gc.collect()
     return gc.mem_free() >= MIN_FREE_MEM
 
+#---------------------------------------
 def get_free_flash_bytes():
     stats = os.statvfs("/")
     return stats[0] * stats[3]
 
+#---------------------------------------
 async def show_progress(ota, led):
     while ota.get_progress() < 100:
         led.toggle()
         logger.info(f"OTA {ota.get_progress():>3}% - {ota.get_status()}")
         await asyncio.sleep(0.4)
     led.value(1)
-
+    
+#---------------------------------------
 async def apply_ota_if_pending(led):
     if "ota_pending.flag" not in os.listdir("/"):
         return
@@ -40,31 +45,55 @@ async def apply_ota_if_pending(led):
     else:
         logger.error("❌ OTA apply failed. Rolling back.")
         await ota.rollback()
-        try:
-            os.remove("ota_pending.flag")
-        except:
-            logger.warn("Could not remove ota_pending.flag after failed apply")
+        ota.cleanup_flags()
 
-async def verify_ota_commit():
+#---------------------------------------
+async def verify_ota_commit(ota_lock):
+    updater = OTAUpdater(REPO_URL)
+
     if "ota_commit_pending.flag" not in os.listdir("/"):
-        return
-    logger.info("🔎 Verifying OTA commit...")
-    ota = OTAUpdater(REPO_URL)
-    for _ in range(12):
-        try:
-            if not await ota.check_for_update():
-                logger.info("✅ OTA commit verified.")
-                try:
-                    os.remove("ota_commit_pending.flag")
-                except Exception as e:
-                    logger.warn(f"Could not remove ota_commit_pending.flag: {e}")
-                return
-        except Exception as e:
-            logger.warn(f"Commit check failed: {e}")
-        await asyncio.sleep(5)
-    logger.error("❌ OTA commit verification failed. Rolling back...")
-    await ota.rollback()
+        return  # No verification needed
 
+    logger.info("🔎 Verifying OTA commit...")
+    max_attempts = 12
+    attempts = 0
+
+    await ota_lock.clear()  # Pause sensor/telemetry tasks
+
+    try:
+        while attempts < max_attempts:
+            logger.info(f"Attempt {attempts}/{max_attempts} — waiting to verify OTA commit...")
+            wifi_status = wifi.get_status()
+            if wifi_status['Internet'] == 'Connected':
+                try:
+                    is_update = await updater.check_for_update()
+                    local = await updater._get_local_version()
+                    remote = updater.remote_version
+                    logger.info(f"OTA → Local: {local} | Remote: {remote}")
+
+                    if local == remote:
+                        updater.cleanup_flags()
+                        logger.info("✅ OTA commit verified. Flag removed.")
+                        return
+                except Exception as e:
+                    logger.warn(f"Commit verify error: {e}")
+            else:
+                logger.warn("🚫 No internet for commit verification.")
+
+            attempts += 1
+            await asyncio.sleep(5)
+
+        # Too many failures — rollback now
+        logger.warn("❌ Commit verification failed. Rolling back firmware.")
+        await updater.rollback()
+        updater.cleanup_flags()
+    except Exception as e:
+        logger.warn(f"Commit verify error: {e}")
+        
+    finally:
+        await ota_lock.set()  # Resume sensor tasks
+        
+#---------------------------------------
 async def check_and_download_ota(led, ota_lock):
     updater = OTAUpdater(REPO_URL)
     while True:

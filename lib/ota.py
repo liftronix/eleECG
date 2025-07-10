@@ -262,3 +262,13 @@ class OTAUpdater:
     #--------------------------------------------------------------------------#
     def get_required_flash_bytes(self):
         return sum(self.sizes.get(f, 0) for f in self.files) * 2
+    
+    #--------------------------------------------------------------------------#    
+    def cleanup_flags(self):
+    for flag in ["ota_pending.flag", "ota_commit_pending.flag"]:
+        try:
+            if flag in os.listdir("/"):
+                os.remove(flag)
+                logger.info(f"🗑 {flag} removed")
+        except Exception as e:
+            logger.warn(f"Failed to remove {flag}: {e}")
