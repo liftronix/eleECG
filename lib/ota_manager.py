@@ -2,7 +2,6 @@
 import machine, os, gc, asyncio
 import logger
 from ota import OTAUpdater
-from wifi_manager import wifi
 
 REPO_URL = "https://raw.githubusercontent.com/liftronix/eleECG/refs/heads/main"
 MIN_FREE_MEM = 100 * 1024
@@ -58,27 +57,24 @@ async def verify_ota_commit(ota_lock):
     max_attempts = 12
     attempts = 0
 
-    await ota_lock.clear()  # Pause sensor/telemetry tasks
+    ota_lock.clear()  # Pause sensor/telemetry tasks
 
     try:
         while attempts < max_attempts:
             logger.info(f"Attempt {attempts}/{max_attempts} — waiting to verify OTA commit...")
-            wifi_status = wifi.get_status()
-            if wifi_status['Internet'] == 'Connected':
-                try:
-                    is_update = await updater.check_for_update()
-                    local = await updater._get_local_version()
-                    remote = updater.remote_version
-                    logger.info(f"OTA → Local: {local} | Remote: {remote}")
+            
+            try:
+                is_update = await updater.check_for_update()
+                local = await updater._get_local_version()
+                remote = updater.remote_version
+                logger.info(f"OTA → Local: {local} | Remote: {remote}")
 
-                    if local == remote:
-                        updater.cleanup_flags()
-                        logger.info("✅ OTA commit verified. Flag removed.")
-                        return
-                except Exception as e:
-                    logger.warn(f"Commit verify error: {e}")
-            else:
-                logger.warn("🚫 No internet for commit verification.")
+                if local == remote:
+                    updater.cleanup_flags()
+                    logger.info("✅ OTA commit verified. Flag removed.")
+                    return
+            except Exception as e:
+                logger.warn(f"Commit verify error: {e}")
 
             attempts += 1
             await asyncio.sleep(5)
@@ -91,7 +87,7 @@ async def verify_ota_commit(ota_lock):
         logger.warn(f"Commit verify error: {e}")
         
     finally:
-        await ota_lock.set()  # Resume sensor tasks
+        ota_lock.set()  # Resume sensor tasks
         
 #---------------------------------------
 async def check_and_download_ota(led, ota_lock):

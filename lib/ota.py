@@ -265,10 +265,10 @@ class OTAUpdater:
     
     #--------------------------------------------------------------------------#    
     def cleanup_flags(self):
-    for flag in ["ota_pending.flag", "ota_commit_pending.flag"]:
-        try:
-            if flag in os.listdir("/"):
-                os.remove(flag)
-                logger.info(f"🗑 {flag} removed")
-        except Exception as e:
-            logger.warn(f"Failed to remove {flag}: {e}")
+        for flag in ["ota_pending.flag", "ota_commit_pending.flag"]:
+            try:
+                if flag in os.listdir("/"):
+                    os.remove(flag)
+                    logger.info(f"🗑 {flag} removed")
+            except Exception as e:
+                logger.warn(f"Failed to remove {flag}: {e}")

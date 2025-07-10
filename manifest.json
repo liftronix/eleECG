@@ -1,16 +1,16 @@
 {
-  "version": "0.4.7",
+  "version": "0.4.8",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
       "size": 211
     },
     "main.py": {
-      "sha256": "544a4ecc146541f818b1d3e40d3b7cb50869f0f0762a89c89ee1fae4b7a974a6",
-      "size": 9673
+      "sha256": "6900dfc2b1bffdd1befbf0fb1df2171f57a6cf9f560aaafc75d4f9413b909e8b",
+      "size": 9681
     },
     "version.txt": {
-      "sha256": "838376a0281034b0707818222fe8086b480b573ced89ccc4c809eb3c6200d85f",
+      "sha256": "e4f812637b4d8b165424241fbd8da9521a1c0d4716fa9004691594225c3f1ada",
       "size": 5
     },
     "lib/config_loader.py": {
@@ -46,12 +46,12 @@
       "size": 1541
     },
     "lib/ota.py": {
-      "sha256": "c2ea4b4d5632e4c17c4128c85c99e090b5744af8c2537f7fc0dec54c9df74db4",
-      "size": 11356
+      "sha256": "9162d4edd9cba37326cf2aa2800ae0c6566bed29d2f4a3f1b0808dd6fb42e6f7",
+      "size": 11386
     },
     "lib/ota_manager.py": {
-      "sha256": "05e8fb08f081cfcbbd8be19639c0988e9e0cf9e8c920829983f21a3052ecbe9c",
-      "size": 5001
+      "sha256": "bd6e61e9c01eb5da692c3d9836c48d764747f84a43687d96ab01b6f94cdfaff4",
+      "size": 4734
     },
     "lib/sdcard.py": {
       "sha256": "5aa0839906790ce26c354fc6a79e5fe711e6df985e34ce7b6035b6193df8e2c1",

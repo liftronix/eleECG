@@ -249,7 +249,7 @@ async def main():
     
     logger.info(f"🧾 Running firmware version: {get_local_version()}")
     await apply_ota_if_pending(led)
-    await verify_ota_commit()
+    await verify_ota_commit(ota_lock)
     asyncio.create_task(check_and_download_ota(led, ota_lock))
     
     # SD Card and Data Logger
