@@ -2,6 +2,7 @@
 import machine, os, gc, asyncio
 import logger
 from ota import OTAUpdater
+from scaled_ui.oled_ui import OLED_UI
 
 REPO_URL = "https://raw.githubusercontent.com/liftronix/eleECG/refs/heads/main"
 MIN_FREE_MEM = 100 * 1024
@@ -26,9 +27,11 @@ def get_free_flash_bytes():
 
 #---------------------------------------
 async def show_progress(ota, led):
+    ui = OLED_UI(oled, scale=2)
     while ota.get_progress() < 100:
         led.toggle()
         logger.info(f"OTA {ota.get_progress():>3}% - {ota.get_status()}")
+        ui.show_message(f"OTA {ota.get_progress():>3}% - {ota.get_status()}")
         await asyncio.sleep(0.4)
     led.value(1)
     

@@ -265,6 +265,24 @@ async def send_to_thingsboard(client, ota_lock):
         await asyncio.sleep(max(5, publish_interval))
 
 
+async def get_sensor_display_functions():
+    funcs = []
+
+    async with latest_sensor_lock:
+        snapshot = latest_sensor_data.copy()
+
+    for sensor, data in snapshot.items():
+        async def make_display(name=sensor, value=data['value']):
+            return f"{name}:\n{value['disp_data']}"
+        funcs.append(make_display)
+
+    return funcs
+
+async def refresh_ui_sources(ui):
+    while True:
+        ui.sensors = await get_sensor_display_functions()
+        await asyncio.sleep(10)
+
 # 🚀 Main Entry Point
 async def main():    
     _thread.start_new_thread(core1_main, ())
@@ -311,7 +329,6 @@ async def main():
     sensor_display_fns = await get_sensor_display_functions()
     ui = OLED_UI(oled, sensor_display_fns, scale=2)
     buttons = ButtonHandler(pin_left=6, pin_right=3)
-    ui.show_message(f"ELE-ECG          {get_local_version()}")
     
     await ui.next()
     await buttons.listen(ui.previous, ui.next, ui.combo_action)
