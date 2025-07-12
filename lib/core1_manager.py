@@ -68,7 +68,7 @@ def mpu_cb_scheduled(_):
 
         # Vibration Index
         vib_index = rms_mag * peak_z
-
+        
         push_sensor_data({
             'sensor': 'mpu',
             'disp_data': vib_index,
@@ -80,6 +80,24 @@ def mpu_cb_scheduled(_):
     except Exception as e:
         push_sensor_data({'sensor': 'mpu', 'error': str(e)})
 
+
+def mpu_temp_cb_stub(timer):
+    micropython.schedule(mpu_temp_cb_scheduled, 0)
+
+def mpu_temp_cb_scheduled(_):
+    if not mpu: return
+    try:
+        temperature = mpu.get_temp()
+        
+        push_sensor_data({
+            'sensor': 'mpu_temp',
+            'disp_data': temperature,
+            'temp': temperature
+        })
+
+    except Exception as e:
+        push_sensor_data({'sensor': 'mpu_temp', 'error': str(e)})
+
 # --- Core 1 Entry Point ---
 def core1_main():
     global mic_timer, mpu_timer
@@ -90,7 +108,11 @@ def core1_main():
     if mpu:
         mpu_timer = Timer()
         mpu_timer.init(freq=1, mode=Timer.PERIODIC, callback=mpu_cb_stub)
-
+    
+    if mpu:
+        mpu_temp_timer = Timer()
+        mpu_temp_timer.init(freq=1, mode=Timer.PERIODIC, callback=mpu_temp_cb_stub)
+    
     while True:
         utime.sleep(1)
 
