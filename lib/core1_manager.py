@@ -31,6 +31,7 @@ def mic_cb_scheduled(_):
         rms, db = compute_rms_db(samples)
         push_sensor_data({
             'sensor': 'mic',
+            'disp_data':db,
             'rms': rms,
             'db': db
         })
@@ -39,7 +40,7 @@ def mic_cb_scheduled(_):
 
 # --- MPU6050 Setup ---
 try:
-    i2c = I2C(0, scl=Pin(1), sda=Pin(0), freq=400_000)
+    i2c = I2C(0, scl=Pin(15), sda=Pin(14), freq=400_000)
     mpu = MPU6050(i2c)
 except Exception as e:
     mpu = None
@@ -70,6 +71,7 @@ def mpu_cb_scheduled(_):
 
         push_sensor_data({
             'sensor': 'mpu',
+            'disp_data': vib_index,
             'vib_index': vib_index,
             'rms_mag': rms_mag,
             'peak_z': peak_z

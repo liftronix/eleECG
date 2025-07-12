@@ -1,16 +1,16 @@
 {
-  "version": "0.4.8",
+  "version": "0.4.9",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
       "size": 211
     },
     "main.py": {
-      "sha256": "6900dfc2b1bffdd1befbf0fb1df2171f57a6cf9f560aaafc75d4f9413b909e8b",
-      "size": 9681
+      "sha256": "37ac16639d6eb9c0c02c34bf41010a318c7256b682fdd0403d71270e1f7cd2fe",
+      "size": 10644
     },
     "version.txt": {
-      "sha256": "e4f812637b4d8b165424241fbd8da9521a1c0d4716fa9004691594225c3f1ada",
+      "sha256": "a77f9e666e4d72b3f2fdeaf4df4a020d93ebd52f70af213c9f5f9ccc83e3bf3f",
       "size": 5
     },
     "lib/config_loader.py": {
@@ -18,8 +18,8 @@
       "size": 241
     },
     "lib/core1_manager.py": {
-      "sha256": "06e56648ba59d7d479e88c7e43de23719ca3d6856c5512abc1382b7bf81c6564",
-      "size": 3218
+      "sha256": "2a164e4199e84ac7ee816cee69b42971366a3ab502cc8a30e7a8eb215f50a398",
+      "size": 3286
     },
     "lib/cpu_baseline.py": {
       "sha256": "4c6063a0fd5c4452e5caccc083a4d6e26575d81fced8fae8fb18867c7591fc91",
@@ -73,9 +73,29 @@
       "sha256": "24e1047b02a44883cbde9eaf33a6da843a59bc90efb2bc788003a110f640dbbe",
       "size": 833
     },
+    "lib/ssd1306.py": {
+      "sha256": "156dcec110abede4b36eefb5667b787240f662e8ec173b3414854398afb9b5df",
+      "size": 4946
+    },
     "lib/wifi_manager.py": {
       "sha256": "eb38aace3ce41b81b1571d24adc0dbe531571922d27c143497d73dceee26dbf1",
       "size": 5175
+    },
+    "lib/scaled_ui/button_handler.py": {
+      "sha256": "a0b1c62ffa13b78e94e6359c40596be42774ca7f5603325dd3500a199c642cb2",
+      "size": 1027
+    },
+    "lib/scaled_ui/font_map.py": {
+      "sha256": "2437885f0fe2913b8e407db683decd73b617a06eea891241f10a025703f58928",
+      "size": 5543
+    },
+    "lib/scaled_ui/font_renderer.py": {
+      "sha256": "8ff3cb9003ad5716346bf4976a9ee4e3e38a60deec050b6490be072333a27b7e",
+      "size": 859
+    },
+    "lib/scaled_ui/oled_ui.py": {
+      "sha256": "804a3c32f25fc43f2fe3a4930576a04de40cb5e1704c1de021e3490e22c307fe",
+      "size": 1349
     },
     "lib/umqtt/robust.py": {
       "sha256": "6958c1cacddf54680ba14fae366cecd7f3d697898e208bfe39f4f4a5ab0bbe68",

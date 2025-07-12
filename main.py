@@ -1,6 +1,7 @@
 import uasyncio as asyncio
 import machine, gc, os, uos, time, logger, _thread
-from machine import Pin
+from machine import Pin, I2C
+
 from core1_manager import core1_main, stop_core1
 from shared_state import get_sensor_snapshot
 from ota_manager import (
@@ -23,9 +24,6 @@ from config_loader import load_config
 
 config = load_config()
 
-# 🕒 REPL-safe boot delay
-print("⏳ Boot delay... press Stop in Thonny to break into REPL")
-time.sleep(3)
 
 '''
 # 🛑 Safe Mode via GPIO14
@@ -35,6 +33,33 @@ if not safe_pin.value():
     import sys
     sys.exit()
 '''
+
+# Set the pin to HIGH
+low_power = Pin(2, Pin.OUT)
+low_power.value(1)
+
+
+# 🖥 Display
+from scaled_ui.oled_ui import OLED_UI
+from scaled_ui.button_handler import ButtonHandler
+import ssd1306
+
+i2c = I2C(0, scl=Pin(5), sda=Pin(4))
+try:
+    oled = ssd1306.SSD1306_I2C(128, 64, i2c)
+    oled.fill(0)
+    oled.show()
+except OSError as e:
+    logger.error("OLED init error:", e)
+
+ui = OLED_UI(oled, scale=2)
+ui.show_message(f"ELE-ECG\n {get_local_version()}")
+
+
+# 🕒 REPL-safe boot delay
+print("⏳ Boot delay... press Stop in Thonny to break into REPL")
+time.sleep(3)
+
 
 # 🔆 LED Setup
 led = Pin('LED', Pin.OUT)
@@ -47,11 +72,15 @@ wifi = WiFiManager(
 )
 wifi.start()
 
+
+
+
 #----------------------------------------------------------
 # Memory and CPU Profiling
 #----------------------------------------------------------
 # --- Config ---
-BASELINE_IDLE_TICKS = 8970       # Your measured 100% idle reference
+#BASELINE_IDLE_TICKS = 8970       # Your measured 100% idle reference
+BASELINE_IDLE_TICKS = 16683       # Your measured 100% idle reference
 MONITOR_INTERVAL = 5             # seconds between samples
 
 # --- State ---
@@ -237,7 +266,7 @@ async def send_to_thingsboard(client, ota_lock):
 
 
 # 🚀 Main Entry Point
-async def main():
+async def main():    
     _thread.start_new_thread(core1_main, ())
     logger.info("🟢 Core 1 sensor sampling started.")
 
@@ -248,6 +277,7 @@ async def main():
     asyncio.create_task(monitor_resources())  # Start diagnostics
     
     logger.info(f"🧾 Running firmware version: {get_local_version()}")
+    
     await apply_ota_if_pending(led)
     await verify_ota_commit(ota_lock)
     asyncio.create_task(check_and_download_ota(led, ota_lock))
@@ -277,6 +307,16 @@ async def main():
     client = TBDeviceMqttClient(mqttHost, access_token = mqttKey)
     asyncio.create_task(send_to_thingsboard(client, ota_lock))
     
+    # UI
+    sensor_display_fns = await get_sensor_display_functions()
+    ui = OLED_UI(oled, sensor_display_fns, scale=2)
+    buttons = ButtonHandler(pin_left=6, pin_right=3)
+    ui.show_message(f"ELE-ECG          {get_local_version()}")
+    
+    await ui.next()
+    await buttons.listen(ui.previous, ui.next, ui.combo_action)
+    asyncio.create_task(refresh_ui_sources(ui))
+
     while True:
         status = wifi.get_status()
         print(f"WiFi Status: {status['WiFi']}, Internet: {status['Internet']}")
