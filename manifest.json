@@ -1,16 +1,16 @@
 {
-  "version": "0.4.10",
+  "version": "0.4.11",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
       "size": 211
     },
     "main.py": {
-      "sha256": "3ff5c72e7bcab1bf05ebf350e3896a81e21d7f2aef01b15df1c22a65ff88f240",
-      "size": 11092
+      "sha256": "12c4fdc4a65df45fa3c19d3a157d8571550cb858b09a183055dcb8ffdaf760e0",
+      "size": 11813
     },
     "version.txt": {
-      "sha256": "e86bee6c458188882c8b725f1827a40b84c7e728d48970bed1374883faf1b205",
+      "sha256": "0b8df30482721540002995eb7245a2f72e9d045d73b43b14d1e0990acdc82fca",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -18,7 +18,7 @@
       "size": 241
     },
     "lib/core1_manager.py": {
-      "sha256": "2a164e4199e84ac7ee816cee69b42971366a3ab502cc8a30e7a8eb215f50a398",
+      "sha256": "eb02397d50f2bec25e78a70956a566c6bc3a4ade67a5de03a6ef5fb32cb2d626",
       "size": 3286
     },
     "lib/cpu_baseline.py": {
@@ -30,8 +30,8 @@
       "size": 4672
     },
     "lib/laser_module.py": {
-      "sha256": "f2d240db9c7e6fab1be8d939d75bab566e1a54597c5000958226de7b681d6f3e",
-      "size": 5366
+      "sha256": "25178907496282d6f702e4a94969083f5d4e7c5ab0509cb2fe1781493f07d6af",
+      "size": 5367
     },
     "lib/ledblinker.py": {
       "sha256": "1ceea55f767cf6eaadc7386ae9bed0c626523004813a25be5235390ff206c7cf",
@@ -50,8 +50,8 @@
       "size": 11386
     },
     "lib/ota_manager.py": {
-      "sha256": "6b57bdb7e9b473ed6c5dc2c27dc0cb80e0777c374bcba55cff9290125b519dce",
-      "size": 4885
+      "sha256": "dbc229f5743192196ea3bc6bfd4c1eb82a0860b251985eec5826ec0c7315c122",
+      "size": 4884
     },
     "lib/sdcard.py": {
       "sha256": "5aa0839906790ce26c354fc6a79e5fe711e6df985e34ce7b6035b6193df8e2c1",
@@ -94,8 +94,8 @@
       "size": 859
     },
     "lib/scaled_ui/oled_ui.py": {
-      "sha256": "804a3c32f25fc43f2fe3a4930576a04de40cb5e1704c1de021e3490e22c307fe",
-      "size": 1349
+      "sha256": "9280b64dfeccf9c80f8a979c083f9a9df17b30966fbf6f13814e600ba3dc8d0a",
+      "size": 2152
     },
     "lib/umqtt/robust.py": {
       "sha256": "6958c1cacddf54680ba14fae366cecd7f3d697898e208bfe39f4f4a5ab0bbe68",

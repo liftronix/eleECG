@@ -4,7 +4,7 @@ from machine import UART, Pin
 from logger import debug, info, warn, error
 
 class LaserModule:
-    def __init__(self, uart_id=0, baudrate=19200, tx_pin=12, rx_pin=13, pwr_pin=11):
+    def __init__(self, uart_id=0, baudrate=115200, tx_pin=12, rx_pin=13, pwr_pin=11):
         """
         Initialize laser module with UART and power pin.
         """

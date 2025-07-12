@@ -26,12 +26,11 @@ def get_free_flash_bytes():
     return stats[0] * stats[3]
 
 #---------------------------------------
-async def show_progress(ota, led):
-    ui = OLED_UI(oled, scale=2)
+async def show_progress(ota, led, display):
     while ota.get_progress() < 100:
         led.toggle()
         logger.info(f"OTA {ota.get_progress():>3}% - {ota.get_status()}")
-        ui.show_message(f"OTA {ota.get_progress():>3}% - {ota.get_status()}")
+        display.show_message(f"OTA {ota.get_progress():>3}% - {ota.get_status()}")
         await asyncio.sleep(0.4)
     led.value(1)
     
@@ -93,7 +92,7 @@ async def verify_ota_commit(ota_lock):
         ota_lock.set()  # Resume sensor tasks
         
 #---------------------------------------
-async def check_and_download_ota(led, ota_lock):
+async def check_and_download_ota(led, ota_lock, display):
     updater = OTAUpdater(REPO_URL)
     while True:
         logger.info("🔍 Checking for OTA update...")
@@ -108,7 +107,7 @@ async def check_and_download_ota(led, ota_lock):
                     logger.info("📥 Downloading update...")
                     ota_lock.clear()  # 🚫 Pause sensors
                     try:
-                        progress_task = asyncio.create_task(show_progress(updater, led))
+                        progress_task = asyncio.create_task(show_progress(updater, led, display))
                         if await updater.download_update():
                             progress_task.cancel()
                             led.value(1)

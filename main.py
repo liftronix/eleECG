@@ -213,11 +213,15 @@ async def drain_laser_data(laser, snapshot_ref, datalogger, ota_lock):
             async with latest_sensor_lock:
                 latest_sensor_data["laser"] = {
                     'seq': seq,
-                    'value': value,
+                    'value': {
+                        'disp_data': value,  # Wrap in dict
+                        'distance': value,
+                        'sensor': 'laser'
+                    },
                     'timestamp': time.ticks_ms()
                 }
 
-            entry = f"[laser] Seq={seq} → {value}"
+            entry = f"[laser] Seq={seq} → {value['distance']} mm"
             await datalogger.log(entry)
 
         except Exception as e:
@@ -265,23 +269,36 @@ async def send_to_thingsboard(client, ota_lock):
         await asyncio.sleep(max(5, publish_interval))
 
 
+# Display Functions
 async def get_sensor_display_functions():
     funcs = []
-
     async with latest_sensor_lock:
         snapshot = latest_sensor_data.copy()
+        print("📊 Live Sensor Snapshot:", snapshot)
 
-    for sensor, data in snapshot.items():
-        async def make_display(name=sensor, value=data['value']):
-            return f"{name}:\n{value['disp_data']}"
-        funcs.append(make_display)
+    for sensor in snapshot:
+        async def display_fn(name=sensor):
+            async with latest_sensor_lock:
+                data = latest_sensor_data.get(name)
+            return f"{name}:\n{data['value']['disp_data']}" if data else f"{name}:\n--"
+        funcs.append(display_fn)
 
     return funcs
+
 
 async def refresh_ui_sources(ui):
     while True:
         ui.sensors = await get_sensor_display_functions()
-        await asyncio.sleep(10)
+        print("🔄 UI Sensor Functions Updated:", len(ui.sensors))
+        await asyncio.sleep(1)
+
+
+async def auto_refresh_ui(ui, interval=3):
+    while True:
+        logger.debug("UI → auto_refresh_ui(): Triggering display refresh")
+        await ui._render_current()
+        await asyncio.sleep(interval)
+
 
 # 🚀 Main Entry Point
 async def main():    
@@ -298,7 +315,8 @@ async def main():
     
     await apply_ota_if_pending(led)
     await verify_ota_commit(ota_lock)
-    asyncio.create_task(check_and_download_ota(led, ota_lock))
+    ui = OLED_UI(oled, scale=2)
+    asyncio.create_task(check_and_download_ota(led, ota_lock, ui))
     
     # SD Card and Data Logger
     sd = SDCardManager()
@@ -329,11 +347,11 @@ async def main():
     sensor_display_fns = await get_sensor_display_functions()
     ui = OLED_UI(oled, sensor_display_fns, scale=2)
     buttons = ButtonHandler(pin_left=6, pin_right=3)
-    
+    asyncio.create_task(refresh_ui_sources(ui))
+    asyncio.create_task(auto_refresh_ui(ui))
     await ui.next()
     await buttons.listen(ui.previous, ui.next, ui.combo_action)
-    asyncio.create_task(refresh_ui_sources(ui))
-
+    
     while True:
         status = wifi.get_status()
         print(f"WiFi Status: {status['WiFi']}, Internet: {status['Internet']}")
