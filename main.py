@@ -296,7 +296,7 @@ async def refresh_ui_sources(ui):
         await asyncio.sleep(1)
 
 
-async def auto_refresh_ui(ui, interval=3):
+async def auto_refresh_ui(ui, interval=1):
     while True:
         logger.debug("UI → auto_refresh_ui(): Triggering display refresh")
         await ui._render_current()

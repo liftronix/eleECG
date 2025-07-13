@@ -1,16 +1,16 @@
 {
-  "version": "0.4.16",
+  "version": "0.4.17",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
       "size": 211
     },
     "main.py": {
-      "sha256": "dd9179b4c4adf916c8dc71269397d6e054c34ec0771f1f2ac0b77beecce51994",
+      "sha256": "1da81d385368f869ebdcdd0e2cf94d5b8ca28447cc04aa2f01246300bcc24346",
       "size": 12155
     },
     "version.txt": {
-      "sha256": "4c8294a3958561610ce1623c14158d26406d7b668f488fda33bdf9039e302824",
+      "sha256": "2001b93209760604e439ce2a501fd0ec90d24789649f21d798b910d186c42ad1",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -18,8 +18,8 @@
       "size": 241
     },
     "lib/core1_manager.py": {
-      "sha256": "8e6f522a4c793805f1bc9b75522cdd736fea7e254c3d7913ff2c9523187e802a",
-      "size": 4407
+      "sha256": "8a7e51a93c2e4c5c304fcf3914b025ff732a731e025271d7ff088413cd3a9f1f",
+      "size": 5477
     },
     "lib/cpu_baseline.py": {
       "sha256": "4c6063a0fd5c4452e5caccc083a4d6e26575d81fced8fae8fb18867c7591fc91",
@@ -46,8 +46,8 @@
       "size": 1541
     },
     "lib/ota.py": {
-      "sha256": "1299da81e8df922551be4a11205411a8d3e8800424b30658f83c34d9c1035970",
-      "size": 12476
+      "sha256": "1ccacde85587b23d0fb5f278e6ef319ea5e727044ded4b7ca79f88e35847f6f4",
+      "size": 13475
     },
     "lib/ota_manager.py": {
       "sha256": "3aa3a9cb9c5e308613c1cd76a2a513d62f85e91c460c1ca8e3ce3febc8e6851f",

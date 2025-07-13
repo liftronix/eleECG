@@ -8,6 +8,8 @@ micropython.alloc_emergency_exception_buf(100)
 # --- Timers ---
 mic_timer = None
 mpu_timer = None
+mpu_temp_timer = None
+door_timer = None
 
 # --- MIC Setup ---
 AUDIO_PIN = 26
@@ -97,7 +99,7 @@ def mpu_cb_scheduled(_):
     except Exception as e:
         push_sensor_data({'sensor': 'mpu', 'error': str(e)})
 
-
+# --- MPU6050 Temperature Setup ---
 def mpu_temp_cb_stub(timer):
     micropython.schedule(mpu_temp_cb_scheduled, 0)
 
@@ -115,9 +117,34 @@ def mpu_temp_cb_scheduled(_):
     except Exception as e:
         push_sensor_data({'sensor': 'mpu_temp', 'error': str(e)})
 
+# --- DOOR Sensor Setup ---
+# Initialize GPIO 0 and GPIO 1 as inputs
+gpio0 = Pin(0, Pin.IN)
+gpio1 = Pin(1, Pin.IN)
+
+def door_cb_stub(timer):
+    micropython.schedule(door_cb_scheduled, 0)
+    
+def door_cb_scheduled(_):
+    try:
+        d_open = gpio0.value()
+        d_close = gpio1.value()
+        #print("GPIO 0:", state0, " | GPIO 1:", state1)
+        
+        if(not d_open):
+            push_sensor_data({'sensor':'door','disp_data':'OPEN'})
+        elif(not d_close):
+            push_sensor_data({'sensor':'door','disp_data':'CLOSED'})
+        else:
+            push_sensor_data({'sensor':'door','disp_data':'NO NC'})
+        
+    except Exception as e:
+        push_sensor_data({'sensor': 'door', 'error': str(e)})
+
+
 # --- Core 1 Entry Point ---
 def core1_main():
-    global mic_timer, mpu_timer
+    global mic_timer, mpu_timer, mpu_temp_timer, door_timer
 
     mic_timer = Timer()
     mic_timer.init(freq=2, mode=Timer.PERIODIC, callback=mic_cb_stub)
@@ -129,6 +156,9 @@ def core1_main():
     if mpu:
         mpu_temp_timer = Timer()
         mpu_temp_timer.init(freq=1, mode=Timer.PERIODIC, callback=mpu_temp_cb_stub)
+        
+    door_timer = Timer()
+    door_timer.init(freq=1, mode=Timer.PERIODIC, callback=door_cb_stub)
     
     while True:
         utime.sleep(1)
@@ -138,6 +168,10 @@ def stop_core1():
         mic_timer.deinit()
     if mpu_timer:
         mpu_timer.deinit()
+    if mpu_temp_timer:
+        mpu_temp_timer.deinit()
+    if door_timer:
+        door_timer.deinit()
     print("🛑 Core 1 timers stopped.")
     
 '''

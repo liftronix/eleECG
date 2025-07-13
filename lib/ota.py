@@ -72,7 +72,8 @@ class OTAUpdater:
     #--------------------------------------------------------------------------#
     async def check_for_update(self):
         try:
-            # Optional: Retry logic
+            # 🔁 Retry manifest fetch up to 3 times
+            r = None
             for attempt in range(3):
                 try:
                     r = requests.get(self.manifest_url, timeout=5)
@@ -88,13 +89,26 @@ class OTAUpdater:
                 logger.error("OTA: All manifest fetch attempts failed.")
                 return False
 
-            # Parse and validate manifest
-            self.manifest = r.json()
+            if not r:
+                logger.error("OTA: Manifest response object missing.")
+                return False
+
+            # 📦 Parse and validate manifest
+            try:
+                self.manifest = r.json()
+            except Exception as e:
+                logger.error(f"Manifest JSON decode failed: {e}")
+                return False
+
             if not isinstance(self.manifest, dict):
                 logger.error("OTA: Manifest is not a valid dictionary")
                 return False
 
             self.remote_version = self.manifest.get("version", "")
+            if not isinstance(self.remote_version, str) or not self.remote_version:
+                logger.error("OTA: Remote version is missing or malformed")
+                return False
+
             files_meta = self.manifest.get("files") or {}
             if not isinstance(files_meta, dict):
                 logger.error("OTA: Manifest files section is malformed")
@@ -104,10 +118,21 @@ class OTAUpdater:
             self.sizes = {k: v["size"] for k, v in files_meta.items() if "size" in v}
             self.files = list(self.hashes.keys())
 
+            logger.info(f"🧾 Manifest file count: {len(self.files)}")
+            if self.files:
+                first_file = next(iter(self.files))
+                logger.debug(f"🗂 First file in manifest: {first_file}")
+
+            # 📊 Compare local and remote versions
             local = await self._get_local_version()
             logger.info(f"OTA → Local: {local} | Remote: {self.remote_version}")
 
-            return bool(self.remote_version) and self.remote_version != local
+            if self.remote_version != local:
+                logger.info("🔔 Update required: new version available.")
+                return True
+            else:
+                logger.info("✅ Firmware is already up to date.")
+                return False
 
         except Exception as e:
             logger.error(f"OTA: Exception during update check: {e}")
