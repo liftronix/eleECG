@@ -115,6 +115,7 @@ async def check_and_download_ota(led, ota_lock, display):
                                 f.write("ready")
                             for i in range(10, 0, -1):
                                 print(f"Rebooting in {i} seconds...")
+                                display.show_message(f"Rebooting in {i} seconds...", scale=1)
                                 await asyncio.sleep(1)
                             machine.reset()
                         else:

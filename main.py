@@ -53,13 +53,7 @@ except OSError as e:
     logger.error("OLED init error:", e)
 
 ui = OLED_UI(oled, scale=2)
-ui.show_message(f"ELE-ECG\n {get_local_version()}")
-
-
-# 🕒 REPL-safe boot delay
-print("⏳ Boot delay... press Stop in Thonny to break into REPL")
-time.sleep(3)
-
+ui.show_message(f"ELE-ECG\n{get_local_version()}")
 
 # 🔆 LED Setup
 led = Pin('LED', Pin.OUT)
@@ -72,8 +66,9 @@ wifi = WiFiManager(
 )
 wifi.start()
 
-
-
+# 🕒 REPL-safe boot delay
+print("⏳ Boot delay... press Stop in Thonny to break into REPL")
+time.sleep(3)
 
 #----------------------------------------------------------
 # Memory and CPU Profiling
@@ -221,7 +216,7 @@ async def drain_laser_data(laser, snapshot_ref, datalogger, ota_lock):
                     'timestamp': time.ticks_ms()
                 }
 
-            entry = f"[laser] Seq={seq} → {value['distance']} mm"
+            entry = f"[laser] Seq={seq} → {value} mm"
             await datalogger.log(entry)
 
         except Exception as e:
@@ -247,17 +242,25 @@ async def send_to_thingsboard(client, ota_lock):
                 # Read global snapshot safely
                 async with latest_sensor_lock:
                     snapshot = latest_sensor_data.copy()
+                
+                local_time = time.localtime()
+                l_date = "{:04d}-{:02d}-{:02d}".format(
+                    local_time[0], local_time[1], local_time[2]
+                )
+                l_time = "{:02d}:{:02d}:{:02d}".format(
+                    local_time[3], local_time[4], local_time[5]
+                )
 
                 # Package Telemetry Data
                 payload = {
                     'Seq': str(mqtt_seq_counter),
-                    'device_date': 'DATE',
-                    'device_time': 'TIME'
+                    'device_date': l_date,
+                    'device_time': l_time
                 }
 
                 for sensor, data in snapshot.items():
-                    payload[f"{sensor}_seq"] = data['seq']
-                    payload[f"{sensor}_value"] = data['value']
+                    #payload[f"{sensor}_seq"] = data['seq']
+                    payload[f"{sensor}_value"] = data['value']['disp_data']
 
                 client.send_telemetry(payload, qos=1)
                 logger.debug(f"📤 Telemetry sent: {payload}")

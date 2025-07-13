@@ -72,18 +72,47 @@ class OTAUpdater:
     #--------------------------------------------------------------------------#
     async def check_for_update(self):
         try:
-            r = requests.get(self.manifest_url)
+            # Optional: Retry logic
+            for attempt in range(3):
+                try:
+                    r = requests.get(self.manifest_url, timeout=5)
+                    if r.status_code == 200:
+                        break
+                    else:
+                        logger.warn(f"Manifest fetch HTTP {r.status_code}")
+                        return False
+                except Exception as e:
+                    logger.warn(f"Attempt {attempt+1}/3 failed: {e}")
+                    await asyncio.sleep(1)
+            else:
+                logger.error("OTA: All manifest fetch attempts failed.")
+                return False
+
+            # Parse and validate manifest
             self.manifest = r.json()
+            if not isinstance(self.manifest, dict):
+                logger.error("OTA: Manifest is not a valid dictionary")
+                return False
+
             self.remote_version = self.manifest.get("version", "")
-            files_meta = self.manifest.get("files", {})
-            self.hashes = {k: v["sha256"] for k, v in files_meta.items()}
-            self.sizes = {k: v["size"] for k, v in files_meta.items()}
+            files_meta = self.manifest.get("files") or {}
+            if not isinstance(files_meta, dict):
+                logger.error("OTA: Manifest files section is malformed")
+                return False
+
+            self.hashes = {k: v["sha256"] for k, v in files_meta.items() if "sha256" in v}
+            self.sizes = {k: v["size"] for k, v in files_meta.items() if "size" in v}
             self.files = list(self.hashes.keys())
+
             local = await self._get_local_version()
             logger.info(f"OTA → Local: {local} | Remote: {self.remote_version}")
-            return self.remote_version and self.remote_version != local
+
+            return bool(self.remote_version) and self.remote_version != local
+
         except Exception as e:
-            logger.error(f"OTA: Failed to fetch manifest: {e}")
+            logger.error(f"OTA: Exception during update check: {e}")
+            self.remote_version = ""
+            self.files = []
             return False
     
     #--------------------------------------------------------------------------#
