@@ -1,5 +1,5 @@
 {
-  "version": "0.4.15",
+  "version": "0.4.16",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
@@ -10,7 +10,7 @@
       "size": 12155
     },
     "version.txt": {
-      "sha256": "ae20d41281c0545ae4c817ab549d93153bb0f5ca103e405938462b48d493dae3",
+      "sha256": "4c8294a3958561610ce1623c14158d26406d7b668f488fda33bdf9039e302824",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -18,8 +18,8 @@
       "size": 241
     },
     "lib/core1_manager.py": {
-      "sha256": "da158f56e8e2a7b37f5183c0dd4f636a2606901866f5c92d065ac55867d4536c",
-      "size": 3881
+      "sha256": "8e6f522a4c793805f1bc9b75522cdd736fea7e254c3d7913ff2c9523187e802a",
+      "size": 4407
     },
     "lib/cpu_baseline.py": {
       "sha256": "4c6063a0fd5c4452e5caccc083a4d6e26575d81fced8fae8fb18867c7591fc91",

@@ -10,13 +10,29 @@ mic_timer = None
 mpu_timer = None
 
 # --- MIC Setup ---
-adc = ADC(Pin(26))
+AUDIO_PIN = 26
+SAMPLE_COUNT = 512
+SAMPLE_DELAY_US = 50  # ~20 kHz sampling
+DB_REF = 0.707        # Reference voltage for dB scaling
+PTP_THRESHOLD = 0.05  # Minimum peak-to-peak voltage to flag activity
+
+adc = ADC(Pin(AUDIO_PIN))
 conv = 3.3 / 65535
 
-def compute_rms_db(samples):
-    rms = math.sqrt(sum(v**2 for v in samples) / len(samples))
-    db = 20 * math.log10(rms / 0.707) if rms > 0 else -float('inf')
-    return rms, db
+def compute_metrics(samples):
+    mean = sum(samples) / len(samples)
+    centered = [(v - mean) for v in samples]
+
+    rms = math.sqrt(sum(v**2 for v in centered) / len(centered))
+    db = 20 * math.log10(rms / DB_REF) if rms > 0 else -float('inf')
+    ptp = max(samples) - min(samples)
+
+    return {
+        'rms': rms,
+        'db': db,
+        'ptp': ptp,
+        'mean': mean
+    }
 
 def mic_cb_stub(timer):
     micropython.schedule(mic_cb_scheduled, 0)
@@ -24,16 +40,17 @@ def mic_cb_stub(timer):
 def mic_cb_scheduled(_):
     try:
         samples = []
-        for _ in range(512):
+        for _ in range(SAMPLE_COUNT):
             samples.append(adc.read_u16() * conv)
-            utime.sleep_us(50)  # ~20kHz sampling
+            utime.sleep_us(SAMPLE_DELAY_US)  # ~20kHz sampling
 
-        rms, db = compute_rms_db(samples)
+        metrics = compute_metrics(samples)
         push_sensor_data({
             'sensor': 'mic',
-            'disp_data':db,
-            'rms': rms,
-            'db': db
+            'disp_data':metrics['ptp'],
+            'rms': metrics['rms'],
+            'db': metrics['db'],
+            'P2P': metrics['ptp']
         })
     except Exception as e:
         push_sensor_data({'sensor': 'mic', 'error': str(e)})
@@ -103,11 +120,11 @@ def core1_main():
     global mic_timer, mpu_timer
 
     mic_timer = Timer()
-    mic_timer.init(freq=1, mode=Timer.PERIODIC, callback=mic_cb_stub)
+    mic_timer.init(freq=2, mode=Timer.PERIODIC, callback=mic_cb_stub)
 
     if mpu:
         mpu_timer = Timer()
-        mpu_timer.init(freq=1, mode=Timer.PERIODIC, callback=mpu_cb_stub)
+        mpu_timer.init(freq=2, mode=Timer.PERIODIC, callback=mpu_cb_stub)
     
     if mpu:
         mpu_temp_timer = Timer()
