@@ -49,7 +49,7 @@ async def apply_ota_if_pending(led):
         ota.cleanup_flags()
 
 #---------------------------------------
-async def verify_ota_commit(ota_lock):
+async def verify_ota_commit(ota_lock, display):
     updater = OTAUpdater(REPO_URL)
 
     if "ota_commit_pending.flag" not in os.listdir("/"):
@@ -74,15 +74,18 @@ async def verify_ota_commit(ota_lock):
                 if local == remote:
                     updater.cleanup_flags()
                     logger.info("✅ OTA commit verified. Flag removed.")
+                    display.show_message(f"Verify\nSuccess")
                     return
             except Exception as e:
                 logger.warn(f"Commit verify error: {e}")
+                display.show_message(f"Verify\nError")
 
             attempts += 1
             await asyncio.sleep(5)
 
         # Too many failures — rollback now
         logger.warn("❌ Commit verification failed. Rolling back firmware.")
+        display.show_message(f"Verify\nError")
         await updater.rollback()
         updater.cleanup_flags()
     except Exception as e:
@@ -115,7 +118,7 @@ async def check_and_download_ota(led, ota_lock, display):
                                 f.write("ready")
                             for i in range(10, 0, -1):
                                 print(f"Rebooting in {i} seconds...")
-                                display.show_message(f"Rebooting in {i} seconds...", scale=1)
+                                display.show_message(f"Reboot\n{i} sec")
                                 await asyncio.sleep(1)
                             machine.reset()
                         else:

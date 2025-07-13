@@ -316,9 +316,9 @@ async def main():
     
     logger.info(f"🧾 Running firmware version: {get_local_version()}")
     
-    await apply_ota_if_pending(led)
-    await verify_ota_commit(ota_lock)
     ui = OLED_UI(oled, scale=2)
+    await apply_ota_if_pending(led)
+    await verify_ota_commit(ota_lock, ui)
     asyncio.create_task(check_and_download_ota(led, ota_lock, ui))
     
     # SD Card and Data Logger
