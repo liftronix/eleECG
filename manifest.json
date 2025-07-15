@@ -1,16 +1,16 @@
 {
-  "version": "0.4.18",
+  "version": "0.4.20",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
       "size": 211
     },
     "main.py": {
-      "sha256": "b5b7af5efb88019fcbe7e74764e01f108cd1187f7cb5cffb7edcac94c1d79daf",
-      "size": 12648
+      "sha256": "82b890502591e6d6a1aeab49ae25e21aa20cda4927c918aa1100ee3a92e9fc7c",
+      "size": 12614
     },
     "version.txt": {
-      "sha256": "99b916eb3ced1f033fba99b2686e992e18db31b37c7123db6c79dd907e1dfd9e",
+      "sha256": "e8fb43c180b00c50e289045f8530139de0415c0938bd369ea2c87dc3b6d1c834",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -38,8 +38,8 @@
       "size": 1299
     },
     "lib/logger.py": {
-      "sha256": "4f38518cd5b3d12b7a863d1a28b1323cadf7e69f504c35522c4e4e799f7b84e4",
-      "size": 3675
+      "sha256": "a3c82a301e814f671a20b51af22374abd3babf484df3307f2f3c07b5b6b8acb5",
+      "size": 3676
     },
     "lib/mpu6050_minimal.py": {
       "sha256": "f9bec1e68a4c9243978d54a6761f5641998b56ca2f5cd9f97e79f26cafd0621d",
@@ -50,8 +50,8 @@
       "size": 13493
     },
     "lib/ota_manager.py": {
-      "sha256": "2129b17b000b55a2a4188530f239add23ac6da281dfb5808217f82d90675f06e",
-      "size": 5489
+      "sha256": "cebb393f58c781036e8fbafcb74e86f318276686002f16201715d43da28ffa12",
+      "size": 5140
     },
     "lib/sdcard.py": {
       "sha256": "5aa0839906790ce26c354fc6a79e5fe711e6df985e34ce7b6035b6193df8e2c1",

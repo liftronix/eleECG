@@ -324,8 +324,8 @@ async def main():
     ui = OLED_UI(oled, scale=2)
     await apply_ota_if_pending(led)
     await verify_ota_commit(ota_lock, ui)
-    status = wifi.get_status()
-    asyncio.create_task(check_and_download_ota(led, ota_lock, ui, status))
+    
+    asyncio.create_task(check_and_download_ota(led, ota_lock, ui))
     
     # SD Card and Data Logger
     sd = SDCardManager()
