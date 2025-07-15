@@ -10,6 +10,7 @@ mic_timer = None
 mpu_timer = None
 mpu_temp_timer = None
 door_timer = None
+power_timer = None
 
 # --- MIC Setup ---
 AUDIO_PIN = 26
@@ -142,16 +143,56 @@ def door_cb_scheduled(_):
         push_sensor_data({'sensor': 'door', 'error': str(e)})
 
 
+# --- Power Setup ---
+adc = ADC(Pin(28)) # ADC for battery voltage on GPIO28 (ADC2)
+charger_pin = Pin(10, Pin.IN)# Charger indication input on GPIO10
+# Voltage reference and resistor values
+VREF = 3.3  # Reference voltage for ADC
+R1 = 9180   # Resistor to battery positive
+R2 = 3590   # Resistor to GND
+# Divider correction factor
+voltage_divider_factor = (R1 + R2) / R2
+
+def read_battery_voltage():
+    raw = adc.read_u16()
+    voltage_at_pin = (raw / 65535) * VREF
+    actual_voltage = voltage_at_pin * voltage_divider_factor
+    return round(actual_voltage, 2)
+
+def read_charger_status():
+    return "OFF" if charger_pin.value() else "ON"
+
+def power_cb_stub(timer):
+    micropython.schedule(power_cb_scheduled, 0)
+    
+def power_cb_scheduled(_):
+    try:
+        vbat = read_battery_voltage()
+        mains = read_charger_status()
+        push_sensor_data({
+            'sensor': 'mains',
+            'disp_data': mains,
+            'AC_Power': mains
+        })
+        push_sensor_data({
+            'sensor': 'batt',
+            'disp_data': f"{vbat}V",
+            'V_Batt':vbat
+        })
+    except Exception as e:
+        push_sensor_data({'sensor': 'Mains', 'error': str(e)})
+
+
 # --- Core 1 Entry Point ---
 def core1_main():
     global mic_timer, mpu_timer, mpu_temp_timer, door_timer
 
     mic_timer = Timer()
-    mic_timer.init(freq=2, mode=Timer.PERIODIC, callback=mic_cb_stub)
+    mic_timer.init(freq=1, mode=Timer.PERIODIC, callback=mic_cb_stub)
 
     if mpu:
         mpu_timer = Timer()
-        mpu_timer.init(freq=2, mode=Timer.PERIODIC, callback=mpu_cb_stub)
+        mpu_timer.init(freq=1, mode=Timer.PERIODIC, callback=mpu_cb_stub)
     
     if mpu:
         mpu_temp_timer = Timer()
@@ -159,6 +200,9 @@ def core1_main():
         
     door_timer = Timer()
     door_timer.init(freq=1, mode=Timer.PERIODIC, callback=door_cb_stub)
+    
+    power_timer = Timer()
+    power_timer.init(freq=1, mode=Timer.PERIODIC, callback=power_cb_stub)
     
     while True:
         utime.sleep(1)
@@ -172,6 +216,8 @@ def stop_core1():
         mpu_temp_timer.deinit()
     if door_timer:
         door_timer.deinit()
+    if power_timer:
+        power_timer.deinit()
     print("🛑 Core 1 timers stopped.")
     
 '''

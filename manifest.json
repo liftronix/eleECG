@@ -1,16 +1,16 @@
 {
-  "version": "0.4.17",
+  "version": "0.4.18",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
       "size": 211
     },
     "main.py": {
-      "sha256": "1da81d385368f869ebdcdd0e2cf94d5b8ca28447cc04aa2f01246300bcc24346",
-      "size": 12155
+      "sha256": "b5b7af5efb88019fcbe7e74764e01f108cd1187f7cb5cffb7edcac94c1d79daf",
+      "size": 12648
     },
     "version.txt": {
-      "sha256": "2001b93209760604e439ce2a501fd0ec90d24789649f21d798b910d186c42ad1",
+      "sha256": "99b916eb3ced1f033fba99b2686e992e18db31b37c7123db6c79dd907e1dfd9e",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -18,8 +18,8 @@
       "size": 241
     },
     "lib/core1_manager.py": {
-      "sha256": "8a7e51a93c2e4c5c304fcf3914b025ff732a731e025271d7ff088413cd3a9f1f",
-      "size": 5477
+      "sha256": "63327380e7759a4696372178775c2ae901cf338317c0806221dc35f37e97c5dd",
+      "size": 6884
     },
     "lib/cpu_baseline.py": {
       "sha256": "4c6063a0fd5c4452e5caccc083a4d6e26575d81fced8fae8fb18867c7591fc91",
@@ -42,16 +42,16 @@
       "size": 3675
     },
     "lib/mpu6050_minimal.py": {
-      "sha256": "b779643954ca82915c478392ddcddfe65b6c7c63f8c124fa8eabe08d50ac14a0",
-      "size": 1541
+      "sha256": "f9bec1e68a4c9243978d54a6761f5641998b56ca2f5cd9f97e79f26cafd0621d",
+      "size": 1543
     },
     "lib/ota.py": {
-      "sha256": "1ccacde85587b23d0fb5f278e6ef319ea5e727044ded4b7ca79f88e35847f6f4",
-      "size": 13475
+      "sha256": "837f947b8947b25ee7ae5162afa5b514a040dcdf012a17c88488beffda84dddc",
+      "size": 13493
     },
     "lib/ota_manager.py": {
-      "sha256": "3aa3a9cb9c5e308613c1cd76a2a513d62f85e91c460c1ca8e3ce3febc8e6851f",
-      "size": 5133
+      "sha256": "2129b17b000b55a2a4188530f239add23ac6da281dfb5808217f82d90675f06e",
+      "size": 5489
     },
     "lib/sdcard.py": {
       "sha256": "5aa0839906790ce26c354fc6a79e5fe711e6df985e34ce7b6035b6193df8e2c1",
@@ -82,8 +82,8 @@
       "size": 5175
     },
     "lib/scaled_ui/button_handler.py": {
-      "sha256": "a0b1c62ffa13b78e94e6359c40596be42774ca7f5603325dd3500a199c642cb2",
-      "size": 1027
+      "sha256": "6b1d548c441bbe49324eecc8627ff20c618a1e57d2c56ad19dc00509dabb1d29",
+      "size": 3515
     },
     "lib/scaled_ui/font_map.py": {
       "sha256": "2437885f0fe2913b8e407db683decd73b617a06eea891241f10a025703f58928",

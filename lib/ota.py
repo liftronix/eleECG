@@ -83,7 +83,7 @@ class OTAUpdater:
                         logger.warn(f"Manifest fetch HTTP {r.status_code}")
                         return False
                 except Exception as e:
-                    logger.warn(f"Attempt {attempt+1}/3 failed: {e}")
+                    logger.warn(f"OTA: Update Check Attempt {attempt+1}/3 failed: {e}")
                     await asyncio.sleep(1)
             else:
                 logger.error("OTA: All manifest fetch attempts failed.")

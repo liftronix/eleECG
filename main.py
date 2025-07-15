@@ -259,8 +259,15 @@ async def send_to_thingsboard(client, ota_lock):
                 }
 
                 for sensor, data in snapshot.items():
-                    #payload[f"{sensor}_seq"] = data['seq']
-                    payload[f"{sensor}_value"] = data['value']['disp_data']
+                    value_dict = data.get("value", {})
+                    disp_data = value_dict.get("disp_data")
+                    
+                    if disp_data is not None:
+                        payload[f"{sensor}_value"] = disp_data
+                    else:
+                        # Optional: log warning and include fallback
+                        logger.warn(f"{sensor}: disp_data missing. Sending error or raw value.")
+                        payload[f"{sensor}_value"] = value_dict.get("error", str(value_dict))
 
                 client.send_telemetry(payload, qos=1)
                 logger.debug(f"📤 Telemetry sent: {payload}")
@@ -296,7 +303,7 @@ async def refresh_ui_sources(ui):
         await asyncio.sleep(1)
 
 
-async def auto_refresh_ui(ui, interval=1):
+async def auto_refresh_ui(ui, interval=2):
     while True:
         logger.debug("UI → auto_refresh_ui(): Triggering display refresh")
         await ui._render_current()
@@ -305,21 +312,20 @@ async def auto_refresh_ui(ui, interval=1):
 
 # 🚀 Main Entry Point
 async def main():    
-    _thread.start_new_thread(core1_main, ())
-    logger.info("🟢 Core 1 sensor sampling started.")
-
-    led_blinker = LEDBlinker(pin_num='LED', interval_ms=200)
-    led_blinker.start()
+    logger.info(f"🧾 Running firmware version: {get_local_version()}")
     
     asyncio.create_task(idle_task())       # Track idle time
     asyncio.create_task(monitor_resources())  # Start diagnostics
     
-    logger.info(f"🧾 Running firmware version: {get_local_version()}")
+    led_blinker = LEDBlinker(pin_num='LED', interval_ms=200)
+    led_blinker.start()
     
+    # OTA 
     ui = OLED_UI(oled, scale=2)
     await apply_ota_if_pending(led)
     await verify_ota_commit(ota_lock, ui)
-    asyncio.create_task(check_and_download_ota(led, ota_lock, ui))
+    status = wifi.get_status()
+    asyncio.create_task(check_and_download_ota(led, ota_lock, ui, status))
     
     # SD Card and Data Logger
     sd = SDCardManager()
@@ -340,20 +346,27 @@ async def main():
         await laser.get_status()
         asyncio.create_task(drain_laser_data(laser, laser_snapshot, datalogger, ota_lock))
     
+    # Core 1 sensors
+    _thread.start_new_thread(core1_main, ())
+    logger.info("🟢 Core 1 sensor sampling started.")
+    
     #MQTT Initialization
     mqttHost = config.get("mqtt").get("host")
     mqttKey = config.get("mqtt").get("key")
     client = TBDeviceMqttClient(mqttHost, access_token = mqttKey)
     asyncio.create_task(send_to_thingsboard(client, ota_lock))
     
-    # UI
+    #UI-Display
     sensor_display_fns = await get_sensor_display_functions()
     ui = OLED_UI(oled, sensor_display_fns, scale=2)
-    buttons = ButtonHandler(pin_left=6, pin_right=3)
     asyncio.create_task(refresh_ui_sources(ui))
     asyncio.create_task(auto_refresh_ui(ui))
     await ui.next()
-    await buttons.listen(ui.previous, ui.next, ui.combo_action)
+    
+    # UI-button
+    buttons = ButtonHandler(pin_left=6, pin_right=3)
+    buttons.attach_ui(ui)
+    buttons.start()
     
     while True:
         status = wifi.get_status()

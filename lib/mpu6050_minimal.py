@@ -48,7 +48,7 @@ if __name__ == "__main__":
     from machine import I2C, Pin
     #from mpu6050_minimal import MPU6050
 
-    i2c = I2C(0, scl=Pin(1), sda=Pin(0))
+    i2c = I2C(1, scl=Pin(15), sda=Pin(14))
     mpu = MPU6050(i2c)
 
     print("Accel:", mpu.get_accel())
