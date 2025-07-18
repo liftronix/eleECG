@@ -1,6 +1,6 @@
 import uasyncio as asyncio
 import machine, gc, os, uos, time, logger, _thread
-from machine import Pin, I2C, WDT
+from machine import Pin, I2C, WDT, Timer
 
 import sysmon
 from core1_manager import core1_main, stop_core1
@@ -73,6 +73,20 @@ ota_lock.set()  # Start with sensors enabled
 # 🕒 REPL-safe boot delay
 print("⏳ Boot delay... press Stop in Thonny to break into REPL")
 time.sleep(3)
+
+# Global counter for seconds
+uptime_s = 0
+
+def tick(timer):
+    global uptime_s
+    uptime_ms += 1  # Timer fires every 1s
+
+# Initialize the timer to call tick() every 1s
+t = Timer()
+t.init(mode=Timer.PERIODIC, period=1000, callback=tick)
+
+def get_uptime():
+    return uptime_s
 
 '''
 # Initialize watchdog with 8000ms timeout
@@ -179,7 +193,7 @@ async def drain_laser_data(laser, snapshot_ref, datalogger, ota_lock):
 
 # MQTT Publish
 mqtt_seq_counter = 0
-
+device_uptime = 0
 async def send_to_thingsboard(client, ota_lock, ui):
     global mqtt_seq_counter
     while True:
@@ -206,6 +220,8 @@ async def send_to_thingsboard(client, ota_lock, ui):
                 # Package Telemetry Data
                 payload = {
                     'Seq': str(mqtt_seq_counter),
+                    'FW_Version': f"{get_local_version()}"
+                    'device_uptime':f"{get_uptime()} sec"
                     'device_date': l_date,
                     'device_time': l_time
                 }

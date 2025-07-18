@@ -1,16 +1,16 @@
 {
-  "version": "0.4.23",
+  "version": "0.4.24",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
       "size": 211
     },
     "main.py": {
-      "sha256": "26af7e9e049ba3894198d9a2aa54c24be607ab53bb7750ed79ae58f446ef9306",
-      "size": 11698
+      "sha256": "d4a65626d2a629a520d082d13e6b3391859341d5f457e7adbdfd0051bbd28597",
+      "size": 12134
     },
     "version.txt": {
-      "sha256": "fd4b9605a7e370b34267a3d973ba2d2930ee397ca1cac750998a3d25a8639c63",
+      "sha256": "62f8e7af3baaf2b004a76b7814b4bd6e37f23b5236e3c07f6b005d0702fdda85",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -38,8 +38,8 @@
       "size": 1299
     },
     "lib/logger.py": {
-      "sha256": "4f38518cd5b3d12b7a863d1a28b1323cadf7e69f504c35522c4e4e799f7b84e4",
-      "size": 3675
+      "sha256": "a3c82a301e814f671a20b51af22374abd3babf484df3307f2f3c07b5b6b8acb5",
+      "size": 3676
     },
     "lib/mpu6050_minimal.py": {
       "sha256": "f9bec1e68a4c9243978d54a6761f5641998b56ca2f5cd9f97e79f26cafd0621d",
