@@ -74,6 +74,7 @@ ota_lock.set()  # Start with sensors enabled
 print("⏳ Boot delay... press Stop in Thonny to break into REPL")
 time.sleep(3)
 
+'''
 # Initialize watchdog with 8000ms timeout
 wdt = WDT(timeout=8000)
 
@@ -81,7 +82,7 @@ async def wdt_feeder():
     while True:
         wdt.feed()
         await asyncio.sleep(2)
-
+'''
 
 # 🧮 Config Sync
 def sync_config_if_changed(sd_path="/sd/config.json", flash_path="/config.json", file_name="config.json"):
@@ -279,7 +280,7 @@ async def main():
     logger.info(f"🧾 Running firmware version: {get_local_version()}")
     
     # Start watchdog feeder as a background task
-    asyncio.create_task(wdt_feeder())
+    #asyncio.create_task(wdt_feeder())
     
     asyncio.create_task(sysmon.idle_task())          # Track idle time
     asyncio.create_task(sysmon.monitor_resources())  # Start diagnostics
