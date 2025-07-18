@@ -79,7 +79,7 @@ uptime_s = 0
 
 def tick(timer):
     global uptime_s
-    uptime_ms += 1  # Timer fires every 1s
+    uptime_s += 1  # Timer fires every 1s
 
 # Initialize the timer to call tick() every 1s
 t = Timer()
