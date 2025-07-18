@@ -1,16 +1,16 @@
 {
-  "version": "0.4.20",
+  "version": "0.4.21",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
       "size": 211
     },
     "main.py": {
-      "sha256": "82b890502591e6d6a1aeab49ae25e21aa20cda4927c918aa1100ee3a92e9fc7c",
-      "size": 12614
+      "sha256": "c8ad8e4e20f7df1ffef3749f05c3eca8631f45f0947152149e36a21aed8b14b9",
+      "size": 11676
     },
     "version.txt": {
-      "sha256": "e8fb43c180b00c50e289045f8530139de0415c0938bd369ea2c87dc3b6d1c834",
+      "sha256": "7431eb9aea672d710acd42899b949a8cbf3166dc28ad04275197abc95b94ee2b",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -50,16 +50,16 @@
       "size": 13493
     },
     "lib/ota_manager.py": {
-      "sha256": "cebb393f58c781036e8fbafcb74e86f318276686002f16201715d43da28ffa12",
-      "size": 5140
+      "sha256": "4fe7bf91c1a8c4e4267922a1998d0a330342c1ede45e256d840bcce4240a4872",
+      "size": 5562
     },
     "lib/sdcard.py": {
       "sha256": "5aa0839906790ce26c354fc6a79e5fe711e6df985e34ce7b6035b6193df8e2c1",
       "size": 10088
     },
     "lib/sdcard_manager.py": {
-      "sha256": "61c388938b4c457bf56b572a0d75f22025b7a8d79866b599cf8782d279f5c2af",
-      "size": 4233
+      "sha256": "2b33db5b8d9a8b68f84dab09fead3b28e827b258ed99f7b9152b48ed6605898c",
+      "size": 4232
     },
     "lib/sensor_settings.py": {
       "sha256": "45c74c6e1c065f9497ccb2802135c36985cd47ba626161a2eee39e8329b90cdc",
@@ -77,9 +77,13 @@
       "sha256": "156dcec110abede4b36eefb5667b787240f662e8ec173b3414854398afb9b5df",
       "size": 4946
     },
+    "lib/sysmon.py": {
+      "sha256": "7f169f3aa4a22c89a7ba302979735deefcd1f15e0d7102322c52035671ba2fbd",
+      "size": 1806
+    },
     "lib/wifi_manager.py": {
-      "sha256": "eb38aace3ce41b81b1571d24adc0dbe531571922d27c143497d73dceee26dbf1",
-      "size": 5175
+      "sha256": "a28b04b2aa1647663d2acb3c85cc5d019f92b352bcc7893ad8a2d4c210485ded",
+      "size": 5396
     },
     "lib/scaled_ui/button_handler.py": {
       "sha256": "6b1d548c441bbe49324eecc8627ff20c618a1e57d2c56ad19dc00509dabb1d29",

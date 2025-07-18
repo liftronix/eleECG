@@ -94,7 +94,7 @@ class SDCardManager:
             else:
                 with open(path, mode) as f:
                     f.write(data)
-                Logger.debug("Wrote: {}".format(path))
+                Logger.info("Wrote: {}".format(path))
         except Exception as e:
             Logger.error("Write failed for {}: {}".format(filename, e))
 

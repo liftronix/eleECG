@@ -45,11 +45,12 @@ class WiFiManager:
             except OSError as e:
                 Logger.error(f"Wi-Fi connection error: {e}")
 
-    async def check_internet(self):
+    async def check_internet(self, online_lock):
         """ Check Internet availability with retry logic """
         if not self.wlan.isconnected():
             self.internet_available = False
             self.internet_status = "Disconnected"
+            online_lock.clear()
             return  # Skip check if Wi-Fi is disconnected
 
         retry_count = 3
@@ -60,6 +61,7 @@ class WiFiManager:
                 if not self.internet_available:
                     self.internet_available = True
                     self.internet_status = "Connected"
+                    online_lock.set()
                 return
             except Exception as e:
                 Logger.warn(f"Internet check failed: {e}")
@@ -68,28 +70,31 @@ class WiFiManager:
         if self.internet_available:  # Only log change if status was previously connected
             self.internet_available = False
             self.internet_status = "Disconnected"
+            online_lock.clear()
             Logger.error("Internet connection lost!")
 
-    async def monitor_connection(self):
+    async def monitor_connection(self, online_lock):
         """ Continuously check Wi-Fi & Internet status with forced refresh """
         while True:
             self.wifi_status = "Connected" if self.wlan.isconnected() else "Disconnected"
             
             if self.wifi_status == "Connected":
                 self.ip_address = self.wlan.ifconfig()[0]
+            else:
+                online_lock.clear()
 
             if self.wifi_status == "Disconnected":
                 self.reconnect_attempts += 1
                 Logger.warn(f"Wi-Fi disconnected! Attempting reconnect ({self.reconnect_attempts})...")
                 await self.connect()
             
-            await self.check_internet()
+            await self.check_internet(online_lock)
             await asyncio.sleep(5)
 
-    def start(self):
+    def start(self,online_lock):
         """ Start Wi-Fi connection and monitoring """
         asyncio.create_task(self.connect())
-        asyncio.create_task(self.monitor_connection())
+        asyncio.create_task(self.monitor_connection(online_lock))
 
     def get_status(self):
         """ Ensure Wi-Fi & Internet status reflect reality correctly """

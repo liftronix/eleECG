@@ -95,40 +95,47 @@ async def verify_ota_commit(ota_lock, display):
         ota_lock.set()  # Resume sensor tasks
         
 #---------------------------------------
-async def check_and_download_ota(led, ota_lock, display):
+async def check_and_download_ota(led, ota_lock, display, online_lock):
     updater = OTAUpdater(REPO_URL)
-    while True:    
-        logger.info("🔍 Checking for OTA update...")
-        if await updater.check_for_update():
-            logger.info("🆕 Update available.")
-            if has_enough_memory():
-                required = updater.get_required_flash_bytes()
-                free = get_free_flash_bytes()
-                if free < required + FLASH_BUFFER:
-                    logger.warn("🚫 Not enough flash space.")
+    while True:
+        try:
+            await asyncio.wait_for(online_lock.wait(), timeout=20)# Block if device is offline
+        
+            logger.info("🔍 Checking for OTA update...")
+            if await updater.check_for_update():
+                logger.info("🆕 Update available.")
+                if has_enough_memory():
+                    required = updater.get_required_flash_bytes()
+                    free = get_free_flash_bytes()
+                    if free < required + FLASH_BUFFER:
+                        logger.warn("🚫 Not enough flash space.")
+                    else:
+                        logger.info("📥 Downloading update...")
+                        ota_lock.clear()  # 🚫 Pause sensors
+                        try:
+                            progress_task = asyncio.create_task(show_progress(updater, led, display))
+                            if await updater.download_update():
+                                progress_task.cancel()
+                                led.value(1)
+                                with open("/ota_pending.flag", "w") as f:
+                                    f.write("ready")
+                                for i in range(10, 0, -1):
+                                    print(f"Rebooting in {i} seconds...")
+                                    display.show_message(f"Reboot\n{i} sec")
+                                    await asyncio.sleep(1)
+                                machine.reset()
+                            else:
+                                progress_task.cancel()
+                                led.value(0)
+                                logger.error("❌ Download failed.")
+                        finally:
+                            ota_lock.set()  # ✅ Resume sensors
                 else:
-                    logger.info("📥 Downloading update...")
-                    ota_lock.clear()  # 🚫 Pause sensors
-                    try:
-                        progress_task = asyncio.create_task(show_progress(updater, led, display))
-                        if await updater.download_update():
-                            progress_task.cancel()
-                            led.value(1)
-                            with open("/ota_pending.flag", "w") as f:
-                                f.write("ready")
-                            for i in range(10, 0, -1):
-                                print(f"Rebooting in {i} seconds...")
-                                display.show_message(f"Reboot\n{i} sec")
-                                await asyncio.sleep(1)
-                            machine.reset()
-                        else:
-                            progress_task.cancel()
-                            led.value(0)
-                            logger.error("❌ Download failed.")
-                    finally:
-                        ota_lock.set()  # ✅ Resume sensors
+                    logger.warn("🚫 Not enough memory for OTA.")
             else:
-                logger.warn("🚫 Not enough memory for OTA.")
-        else:
-            logger.info("✅ Firmware is up to date.")
+                logger.info("✅ Firmware is up to date.")
+                
+        except asyncio.TimeoutError:
+            logger.warn("⏳ Online check timed out — skipping OTA this round")            
+        
         await asyncio.sleep(120)
