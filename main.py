@@ -291,7 +291,7 @@ async def main():
     # OTA 
     ui = OLED_UI(oled, scale=2)
     await apply_ota_if_pending(led)
-    await verify_ota_commit(ota_lock, ui)
+    await verify_ota_commit(online_lock, ota_lock, ui)
     
     asyncio.create_task(check_and_download_ota(led, ota_lock, ui, online_lock))
     

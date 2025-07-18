@@ -49,7 +49,7 @@ async def apply_ota_if_pending(led):
         ota.cleanup_flags()
 
 #---------------------------------------
-async def verify_ota_commit(ota_lock, display):
+async def verify_ota_commit(online_lock, ota_lock, display):
     updater = OTAUpdater(REPO_URL)
 
     if "ota_commit_pending.flag" not in os.listdir("/"):
@@ -59,14 +59,26 @@ async def verify_ota_commit(ota_lock, display):
     max_attempts = 12
     attempts = 0
 
-    ota_lock.clear()  # Pause sensor/telemetry tasks
+    ota_lock.clear()  # 🚫 Pause Sensing during verification
 
     try:
         while attempts < max_attempts:
-            logger.info(f"Attempt {attempts}/{max_attempts} — waiting to verify OTA commit...")
-            
+            logger.info(f"Attempt {attempts+1}/{max_attempts} — OTA commit check")
+            display.show_message(f"Verify\nTry {attempts+1}")
+
+            # Wait for internet lock — if fails, retry
             try:
-                is_update = await updater.check_for_update()
+                await asyncio.wait_for(online_lock.wait(), timeout=5)
+            except asyncio.TimeoutError:
+                logger.warn("🕸️ Internet not ready — will retry")
+                display.show_message("Verify\nNo WiFi")
+                attempts += 1
+                await asyncio.sleep(5)
+                continue  # retry loop
+
+            # Try OTA version comparison
+            try:
+                is_update = await asyncio.wait_for(updater.check_for_update(), timeout=5)
                 local = await updater._get_local_version()
                 remote = updater.remote_version
                 logger.info(f"OTA → Local: {local} | Remote: {remote}")
@@ -74,25 +86,35 @@ async def verify_ota_commit(ota_lock, display):
                 if local == remote:
                     updater.cleanup_flags()
                     logger.info("✅ OTA commit verified. Flag removed.")
-                    display.show_message(f"Verify\nSuccess")
+                    display.show_message("Verify\nSuccess")
                     return
+                else:
+                    logger.warn("🔁 Version mismatch — OTA commit pending")
+                    display.show_message("Verify\nMismatch")
+
+            except asyncio.TimeoutError:
+                logger.warn("⚠️ OTA check timed out.")
+                display.show_message("Verify\nTimeout")
             except Exception as e:
                 logger.warn(f"Commit verify error: {e}")
-                display.show_message(f"Verify\nError")
+                display.show_message("Verify\nError")
 
             attempts += 1
             await asyncio.sleep(5)
 
-        # Too many failures — rollback now
+        # ⏱️ Max attempts exhausted — rollback
         logger.warn("❌ Commit verification failed. Rolling back firmware.")
-        display.show_message(f"Verify\nError")
+        display.show_message("Verify\nRollback")
         await updater.rollback()
         updater.cleanup_flags()
+
     except Exception as e:
-        logger.warn(f"Commit verify error: {e}")
-        
+        logger.warn(f"🚨 Unhandled commit verify error: {e}")
+        display.show_message("Verify\nException")
+
     finally:
-        ota_lock.set()  # Resume sensor tasks
+        ota_lock.set()  # ✅ Resume Sensing tasks
+
         
 #---------------------------------------
 async def check_and_download_ota(led, ota_lock, display, online_lock):

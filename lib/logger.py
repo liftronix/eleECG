@@ -3,7 +3,7 @@ import os
 import sys
 
 class Logger:
-    DEBUG_MODE = False
+    DEBUG_MODE = True
     INFO_MODE = True
     WARN_MODE = True
     ERROR_MODE = True
