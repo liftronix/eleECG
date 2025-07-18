@@ -220,8 +220,8 @@ async def send_to_thingsboard(client, ota_lock, ui):
                 # Package Telemetry Data
                 payload = {
                     'Seq': str(mqtt_seq_counter),
-                    'FW_Version': f"{get_local_version()}"
-                    'device_uptime':f"{get_uptime()} sec"
+                    'FW_Version': f"{get_local_version()}",
+                    'device_uptime':f"{get_uptime()} sec",
                     'device_date': l_date,
                     'device_time': l_time
                 }
