@@ -294,9 +294,10 @@ async def refresh_ui_sources(ui, online_lock):
         await asyncio.sleep(1)
 
 
-async def auto_refresh_ui(ui, online_lock, interval=2):
+async def auto_refresh_ui(ui, ota_lock, online_lock, interval=2):
     global mqtt_seq_counter
     while True:
+        await ota_lock.wait()  # ⛔ Block if OTA is active
         if online_lock.is_set():  # ⛔ Connected mode, skip display refresh
             ui.show_message(f"MQTT\n{mqtt_seq_counter}")
         else:
