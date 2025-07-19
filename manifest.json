@@ -1,16 +1,16 @@
 {
-  "version": "0.4.26",
+  "version": "0.4.27",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
       "size": 211
     },
     "main.py": {
-      "sha256": "85d76310fb8e24e3f65f045d4a9cceb56c8531359fec48364b9044df84047c2b",
-      "size": 12135
+      "sha256": "2ec919c9a00c4e11ceaaab2d5298b3e907ffd72d3b37846ee6cdc44b48ca81bb",
+      "size": 12845
     },
     "version.txt": {
-      "sha256": "abc4c06419e904aa0eb1e19685f897159e75fce9878fa101485edb5ddfcade19",
+      "sha256": "20e3600295fb0b1f8fd27e04fb914e167185ab762742ebe0ac09c95f26954a09",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -26,11 +26,11 @@
       "size": 962
     },
     "lib/datalogger.py": {
-      "sha256": "f5ea1ad6dd864554e4376517b890b7436715cb3ed7e726c4f91aaf4c7499dff4",
-      "size": 4672
+      "sha256": "99020ac176a697d77f12c0a4af2e9750dfe3434ba4c63756304d265c40540f88",
+      "size": 10792
     },
     "lib/laser_module.py": {
-      "sha256": "25178907496282d6f702e4a94969083f5d4e7c5ab0509cb2fe1781493f07d6af",
+      "sha256": "75a837cba80a5aa473562b1da9159b19bfa291d996f60b08166c19f4cdc670cd",
       "size": 5367
     },
     "lib/ledblinker.py": {
@@ -82,8 +82,8 @@
       "size": 1806
     },
     "lib/wifi_manager.py": {
-      "sha256": "a28b04b2aa1647663d2acb3c85cc5d019f92b352bcc7893ad8a2d4c210485ded",
-      "size": 5396
+      "sha256": "22b315a26d16ae179c9fdb3f13fe902e2d13eb4149c8f4e95e6e19479e635d8c",
+      "size": 5958
     },
     "lib/scaled_ui/button_handler.py": {
       "sha256": "6b1d548c441bbe49324eecc8627ff20c618a1e57d2c56ad19dc00509dabb1d29",

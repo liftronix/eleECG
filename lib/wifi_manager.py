@@ -3,6 +3,7 @@ import uasyncio as asyncio
 import socket
 import time
 import urequests
+import ntptime
 from logger import Logger  # Import logger module
 
 class WiFiManager:
@@ -16,6 +17,7 @@ class WiFiManager:
         self.ip_address = None  # Store connected IP address
         self.wifi_status = "Disconnected"  # Track Wi-Fi status
         self.internet_status = "Disconnected"  # Track Internet status
+        self.time_sync = "Pending"
 
     async def connect(self):
         """ Connect to Wi-Fi with error handling and reconnection logic """
@@ -50,6 +52,7 @@ class WiFiManager:
         if not self.wlan.isconnected():
             self.internet_available = False
             self.internet_status = "Disconnected"
+            self.time_sync = "Pending"
             online_lock.clear()
             return  # Skip check if Wi-Fi is disconnected
 
@@ -61,6 +64,14 @@ class WiFiManager:
                 if not self.internet_available:
                     self.internet_available = True
                     self.internet_status = "Connected"
+                    if self.time_sync == "Pending":
+                        try:
+                            ntptime.settime()
+                            time.localtime(time.time()+19800)
+                            self.time_sync = "Synchronized"
+                            Logger.info("System time synced.")
+                        except Exception as e:
+                            Logger.warn("NTP sync failed:", e)
                     online_lock.set()
                 return
             except Exception as e:
@@ -70,6 +81,7 @@ class WiFiManager:
         if self.internet_available:  # Only log change if status was previously connected
             self.internet_available = False
             self.internet_status = "Disconnected"
+            self.time_sync = "Pending"
             online_lock.clear()
             Logger.error("Internet connection lost!")
 

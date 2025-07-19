@@ -76,17 +76,36 @@ time.sleep(3)
 
 # Global counter for seconds
 uptime_s = 0
+offline_time_s = 0
+watch_dog_time_s = 0
 
 def tick(timer):
     global uptime_s
+    global offline_time_s
+    global watch_dog_time_s
+    
     uptime_s += 1  # Timer fires every 1s
+    watch_dog_time_s += 1
+    
+    wdt_reset_limit = 120
+    if (watch_dog_time_s > (wdt_reset_limit - 10)):
+        logger.warn(f"Impending WatchDog Reset {wdt_reset_limit-watch_dog_time_s}")
+    if (watch_dog_time_s > wdt_reset_limit):
+        logger.warn('Trigger WatchDog Reset')
+        machine.reset()
+    
+    if not online_lock.is_set():
+        offline_time_s += 1
 
 # Initialize the timer to call tick() every 1s
-t = Timer()
-t.init(mode=Timer.PERIODIC, period=1000, callback=tick)
+sysTimer = Timer()
+sysTimer.init(mode=Timer.PERIODIC, period=1000, callback=tick)
 
 def get_uptime():
     return uptime_s
+
+def get_offline_time():
+    return offline_time_s
 
 '''
 # Initialize watchdog with 8000ms timeout
@@ -194,7 +213,7 @@ async def drain_laser_data(laser, snapshot_ref, datalogger, ota_lock):
 # MQTT Publish
 mqtt_seq_counter = 0
 device_uptime = 0
-async def send_to_thingsboard(client, ota_lock, ui):
+async def send_to_thingsboard(client, ota_lock, online_lock, ui):
     global mqtt_seq_counter
     while True:
         try:
@@ -203,8 +222,7 @@ async def send_to_thingsboard(client, ota_lock, ui):
             try:
                 client.connect()
                 mqtt_seq_counter += 1
-                ui.show_message(f"MQTT\n{mqtt_seq_counter}")
-
+                
                 # Read global snapshot safely
                 async with latest_sensor_lock:
                     snapshot = latest_sensor_data.copy()
@@ -222,6 +240,7 @@ async def send_to_thingsboard(client, ota_lock, ui):
                     'Seq': str(mqtt_seq_counter),
                     'FW_Version': f"{get_local_version()}",
                     'device_uptime':f"{get_uptime()} sec",
+                    'device_offline_time':f"{get_offline_time()} sec",
                     'device_date': l_date,
                     'device_time': l_time
                 }
@@ -279,15 +298,14 @@ async def refresh_ui_sources(ui, online_lock):
 
 
 async def auto_refresh_ui(ui, online_lock, interval=2):
+    global mqtt_seq_counter
     while True:
         if online_lock.is_set():  # ⛔ Connected mode, skip display refresh
-            
-            logger.debug("UI → Skipped refresh (device is online)")
-            await asyncio.sleep(interval)
-            continue
-
-        logger.debug("UI → auto_refresh_ui(): Triggering display refresh")
-        await ui._render_current()
+            ui.show_message(f"MQTT\n{mqtt_seq_counter}")
+        else:
+            logger.debug("UI → auto_refresh_ui(): Triggering display refresh")
+            await ui._render_current()
+        
         await asyncio.sleep(interval)
 
 
@@ -350,9 +368,11 @@ async def main():
     mqttHost = config.get("mqtt").get("host")
     mqttKey = config.get("mqtt").get("key")
     client = TBDeviceMqttClient(mqttHost, access_token = mqttKey)
-    asyncio.create_task(send_to_thingsboard(client, ota_lock, ui))
+    asyncio.create_task(send_to_thingsboard(client, ota_lock, online_lock, ui))
     
+    global watch_dog_time_s
     while True:
+        watch_dog_time_s = 0 # Clear WDT to prevent reset
         status = wifi.get_status()
         print(f"WiFi Status: {status['WiFi']}, Internet: {status['Internet']}")
         print(f"IP Address: {wifi.get_ip_address()}")
@@ -368,6 +388,8 @@ try:
 except KeyboardInterrupt:
     logger.info("🔻 Ctrl+C detected — shutting down...")
     stop_core1()
+    if sysTimer:
+        sysTimer.deinit()
     time.sleep(1)
     logger.info("🛑 System shutdown complete.")
 

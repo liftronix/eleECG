@@ -86,7 +86,7 @@ class LaserModule:
             else:
                 payload = b'\x00\x20\x00\x01\x00\x02'
                 checksum = b'\x23'
-                delay_ms = 600
+                delay_ms = 150
 
             await self._send_packet(payload, checksum)
             await asyncio.sleep_ms(delay_ms)
