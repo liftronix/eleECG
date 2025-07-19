@@ -1,16 +1,16 @@
 {
-  "version": "0.4.27",
+  "version": "0.4.29",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
       "size": 211
     },
     "main.py": {
-      "sha256": "2ec919c9a00c4e11ceaaab2d5298b3e907ffd72d3b37846ee6cdc44b48ca81bb",
-      "size": 12845
+      "sha256": "ba3a9c7f47284d7a31623ddce9d7c067627b86450f33aac69fde23477650a76f",
+      "size": 12728
     },
     "version.txt": {
-      "sha256": "20e3600295fb0b1f8fd27e04fb914e167185ab762742ebe0ac09c95f26954a09",
+      "sha256": "93d9f249493a97c6a6b25282a73d3b88948ba77ae0f96ace478fafc61ea5e60a",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -34,8 +34,8 @@
       "size": 5367
     },
     "lib/ledblinker.py": {
-      "sha256": "1ceea55f767cf6eaadc7386ae9bed0c626523004813a25be5235390ff206c7cf",
-      "size": 1299
+      "sha256": "4ff604b1633004b6fd7c28c90fddcd66568c3f6e035ef63f15b6d34370e43a80",
+      "size": 1302
     },
     "lib/logger.py": {
       "sha256": "a3c82a301e814f671a20b51af22374abd3babf484df3307f2f3c07b5b6b8acb5",
@@ -50,8 +50,8 @@
       "size": 13493
     },
     "lib/ota_manager.py": {
-      "sha256": "8dad407d9289895440dcf9da7eee30d071796aed329a89e7bc6cf753f7657b30",
-      "size": 6529
+      "sha256": "f273702973da9a8d5f2c33977c785cb3a817852bd95e0836aefcc67f44d53c0b",
+      "size": 6679
     },
     "lib/sdcard.py": {
       "sha256": "5aa0839906790ce26c354fc6a79e5fe711e6df985e34ce7b6035b6193df8e2c1",

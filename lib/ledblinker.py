@@ -37,7 +37,7 @@ if __name__ == "__main__":
     import uasyncio as asyncio
     #from ledblinker import LEDBlinker
 
-    led = LEDBlinker(pin_num=25, interval_ms=300)
+    led = LEDBlinker(pin_num='LED', interval_ms=500)
     led.start()
 
     async def main():

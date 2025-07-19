@@ -53,9 +53,6 @@ except OSError as e:
 ui = OLED_UI(oled, scale=2)
 ui.show_message(f"ELE-ECG\n{get_local_version()}")
 
-# 🔆 LED Setup
-led = Pin('LED', Pin.OUT)
-led.value(0)
 
 online_lock = asyncio.Event()
 online_lock.clear() #Disconnected at start
@@ -313,21 +310,19 @@ async def auto_refresh_ui(ui, online_lock, interval=2):
 async def main():    
     logger.info(f"🧾 Running firmware version: {get_local_version()}")
     
-    # Start watchdog feeder as a background task
-    #asyncio.create_task(wdt_feeder())
-    
     asyncio.create_task(sysmon.idle_task())          # Track idle time
     asyncio.create_task(sysmon.monitor_resources())  # Start diagnostics
     
-    led_blinker = LEDBlinker(pin_num='LED', interval_ms=200)
+    # 🔆 LED Setup
+    led_blinker = LEDBlinker(pin_num='LED', interval_ms=500)
     led_blinker.start()
     
     # OTA 
     ui = OLED_UI(oled, scale=2)
-    await apply_ota_if_pending(led)
+    await apply_ota_if_pending(led_blinker)
     await verify_ota_commit(online_lock, ota_lock, ui)
     
-    asyncio.create_task(check_and_download_ota(led, ota_lock, ui, online_lock))
+    asyncio.create_task(check_and_download_ota(led_blinker, ota_lock, ui, online_lock))
     
     # SD Card and Data Logger
     sd = SDCardManager()

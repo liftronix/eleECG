@@ -26,20 +26,21 @@ def get_free_flash_bytes():
     return stats[0] * stats[3]
 
 #---------------------------------------
-async def show_progress(ota, led, display):
+async def show_progress(ota, led_blinker, display):
     while ota.get_progress() < 100:
-        led.toggle()
+        led_blinker.set_interval(100)
         logger.info(f"OTA {ota.get_progress():>3}% - {ota.get_status()}")
         display.show_message(f"OTA {ota.get_progress():>3}% - {ota.get_status()}")
         await asyncio.sleep(0.4)
-    led.value(1)
+    led_blinker.set_interval(500)
     
 #---------------------------------------
-async def apply_ota_if_pending(led):
+async def apply_ota_if_pending(led_blinker):
     if "ota_pending.flag" not in os.listdir("/"):
         return
     logger.info("🟡 ota_pending.flag detected — applying OTA update")
     ota = OTAUpdater(REPO_URL)
+    led_blinker.set_interval(100)
     if await ota.apply_update():
         logger.info("🔁 OTA applied successfully. Rebooting...")
         machine.reset()
@@ -47,6 +48,7 @@ async def apply_ota_if_pending(led):
         logger.error("❌ OTA apply failed. Rolling back.")
         await ota.rollback()
         ota.cleanup_flags()
+    led_blinker.set_interval(500)
 
 #---------------------------------------
 async def verify_ota_commit(online_lock, ota_lock, display):
@@ -117,7 +119,7 @@ async def verify_ota_commit(online_lock, ota_lock, display):
 
         
 #---------------------------------------
-async def check_and_download_ota(led, ota_lock, display, online_lock):
+async def check_and_download_ota(led_blinker, ota_lock, display, online_lock):
     updater = OTAUpdater(REPO_URL)
     while True:
         try:
@@ -126,6 +128,7 @@ async def check_and_download_ota(led, ota_lock, display, online_lock):
             logger.info("🔍 Checking for OTA update...")
             if await updater.check_for_update():
                 logger.info("🆕 Update available.")
+                led_blinker.set_interval(100)
                 if has_enough_memory():
                     required = updater.get_required_flash_bytes()
                     free = get_free_flash_bytes()
@@ -135,10 +138,9 @@ async def check_and_download_ota(led, ota_lock, display, online_lock):
                         logger.info("📥 Downloading update...")
                         ota_lock.clear()  # 🚫 Pause sensors
                         try:
-                            progress_task = asyncio.create_task(show_progress(updater, led, display))
+                            progress_task = asyncio.create_task(show_progress(updater, led_blinker, display))
                             if await updater.download_update():
                                 progress_task.cancel()
-                                led.value(1)
                                 with open("/ota_pending.flag", "w") as f:
                                     f.write("ready")
                                 for i in range(10, 0, -1):
@@ -148,10 +150,10 @@ async def check_and_download_ota(led, ota_lock, display, online_lock):
                                 machine.reset()
                             else:
                                 progress_task.cancel()
-                                led.value(0)
                                 logger.error("❌ Download failed.")
                         finally:
                             ota_lock.set()  # ✅ Resume sensors
+                            led_blinker.set_interval(500)
                 else:
                     logger.warn("🚫 Not enough memory for OTA.")
             else:
