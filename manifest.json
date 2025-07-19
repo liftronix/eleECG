@@ -1,5 +1,5 @@
 {
-  "version": "0.4.29",
+  "version": "0.4.30",
   "files": {
     "config.json": {
       "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
@@ -10,7 +10,7 @@
       "size": 12728
     },
     "version.txt": {
-      "sha256": "93d9f249493a97c6a6b25282a73d3b88948ba77ae0f96ace478fafc61ea5e60a",
+      "sha256": "4d9d7ef812473adb3442c610bd515b1c235004967ef03c9d2370cd69607abc9e",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -82,8 +82,8 @@
       "size": 1806
     },
     "lib/wifi_manager.py": {
-      "sha256": "22b315a26d16ae179c9fdb3f13fe902e2d13eb4149c8f4e95e6e19479e635d8c",
-      "size": 5958
+      "sha256": "9e915b595b9e8a105718a5cac5b4b156421a6be1b66ce37a58327fa77a7cb5fa",
+      "size": 7126
     },
     "lib/scaled_ui/button_handler.py": {
       "sha256": "6b1d548c441bbe49324eecc8627ff20c618a1e57d2c56ad19dc00509dabb1d29",
