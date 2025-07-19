@@ -352,7 +352,7 @@ async def main():
     sensor_display_fns = await get_sensor_display_functions()
     ui = OLED_UI(oled, sensor_display_fns, scale=2)
     asyncio.create_task(refresh_ui_sources(ui, online_lock))
-    asyncio.create_task(auto_refresh_ui(ui, online_lock))
+    asyncio.create_task(auto_refresh_ui(ui, ota_lock, online_lock))
     await ui.next()
     
     # UI-button
