@@ -1,12 +1,30 @@
+'''
+- 🟢 UART initializes only when used
+- 🛑 UART stays disabled if UART_ENABLED = False
+- 🎨 ANSI colors fully supported in PuTTY
+- 💾 Switches for REPL, storage, UART control
+- 🧼 CRLF (\r\n) for clean serial line break
+- 💾 Saves log to on-chip flash
+'''
 import time
 import os
 import sys
+from machine import UART, Pin
 
 class Logger:
+    # Log level controls
     DEBUG_MODE = False
     INFO_MODE = True
     WARN_MODE = True
     ERROR_MODE = True
+
+    # Output toggles
+    REPL_ENABLED = True
+    STORAGE_ENABLED = True
+    UART_ENABLED = True
+
+    # UART instance (deferred setup)
+    UART_PORT = None
 
     _RESET = "\033[0m"
     _COLORS = {
@@ -34,13 +52,26 @@ class Logger:
                     sys.print_exception(rotate_err)
 
                 with open(Logger.LOG_FILE, "w") as f:
-                    f.write("🗂 Log rotated | Iteration #: {}\n".format(rotation_id))
+                    f.write("🗂 Log rotated | Iteration #: {}\r\n".format(rotation_id))
 
             ts = Logger._get_ts()
+            line = "[{}] [{}] {}\r\n".format(ts, level, msg)
             with open(Logger.LOG_FILE, "a") as f:
-                f.write("[{}] [{}] {}\n".format(ts, level, msg))
+                f.write(line)
         except Exception as write_err:
             sys.print_exception(write_err)
+
+    @staticmethod
+    def _uart_log(level, msg):
+        try:
+            if Logger.UART_ENABLED:
+                if Logger.UART_PORT is None:
+                    Logger.UART_PORT = UART(1, baudrate=115200, tx=Pin(8), rx=Pin(9))
+                color = Logger._COLORS.get(level, "")
+                line = "{}[{}] {}{}\r\n".format(color, level, msg, Logger._RESET)
+                Logger.UART_PORT.write(line)
+        except Exception as uart_err:
+            sys.print_exception(uart_err)
 
     @staticmethod
     def _get_ts():
@@ -90,26 +121,38 @@ class Logger:
     @staticmethod
     def debug(msg):
         if Logger.DEBUG_MODE:
-            print(f"{Logger._COLORS['DEBUG']}[DEBUG] {msg}{Logger._RESET}")
-            Logger._write_log_file("DEBUG", msg)
+            if Logger.REPL_ENABLED:
+                print(f"{Logger._COLORS['DEBUG']}[DEBUG] {msg}{Logger._RESET}")
+            if Logger.STORAGE_ENABLED:
+                Logger._write_log_file("DEBUG", msg)
+            Logger._uart_log("DEBUG", msg)
 
     @staticmethod
     def info(msg):
         if Logger.INFO_MODE:
-            print(f"{Logger._COLORS['INFO']}[INFO] {msg}{Logger._RESET}")
-            Logger._write_log_file("INFO", msg)
+            if Logger.REPL_ENABLED:
+                print(f"{Logger._COLORS['INFO']}[INFO] {msg}{Logger._RESET}")
+            if Logger.STORAGE_ENABLED:
+                Logger._write_log_file("INFO", msg)
+            Logger._uart_log("INFO", msg)
 
     @staticmethod
     def warn(msg):
         if Logger.WARN_MODE:
-            print(f"{Logger._COLORS['WARN']}[WARNING] {msg}{Logger._RESET}")
-            Logger._write_log_file("WARNING", msg)
+            if Logger.REPL_ENABLED:
+                print(f"{Logger._COLORS['WARN']}[WARNING] {msg}{Logger._RESET}")
+            if Logger.STORAGE_ENABLED:
+                Logger._write_log_file("WARNING", msg)
+            Logger._uart_log("WARNING", msg)
 
     @staticmethod
     def error(msg):
         if Logger.ERROR_MODE:
-            print(f"{Logger._COLORS['ERROR']}[ERROR] {msg}{Logger._RESET}")
-            Logger._write_log_file("ERROR", msg)
+            if Logger.REPL_ENABLED:
+                print(f"{Logger._COLORS['ERROR']}[ERROR] {msg}{Logger._RESET}")
+            if Logger.STORAGE_ENABLED:
+                Logger._write_log_file("ERROR", msg)
+            Logger._uart_log("ERROR", msg)
 
 # Aliases
 debug = Logger.debug
