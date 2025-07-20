@@ -22,38 +22,27 @@ from config_loader import load_config
 
 config = load_config()
 
+online_lock = asyncio.Event()
+online_lock.clear() #Disconnected at start
 
-'''
-# 🛑 Safe Mode via GPIO14
-safe_pin = Pin(14, Pin.IN, Pin.PULL_UP)
-if not safe_pin.value():
-    logger.warn("Safe Mode triggered — skipping OTA and main loop")
-    import sys
-    sys.exit()
-'''
+ota_lock = asyncio.Event()
+ota_lock.set()  # Start with sensors enabled
 
-# Set the power pin to HIGH at default
-machine.Pin(2, machine.Pin.OUT).value(1)
+from platform_boot import (
+    init_power_pin, init_display, init_sys_timer,
+    get_uptime, get_offline_time, reset_watchdog_timer
+)
+
+init_power_pin()
 
 # 🖥 Display
 from scaled_ui.oled_ui import OLED_UI
 from scaled_ui.button_handler import ButtonHandler
-import ssd1306
 
-i2c = I2C(0, scl=Pin(5), sda=Pin(4))
-try:
-    oled = ssd1306.SSD1306_I2C(128, 64, i2c)
-    oled.fill(0)
-    oled.show()
-except OSError as e:
-    logger.error("OLED init error:", e)
 
+oled = init_display()
 ui = OLED_UI(oled, scale=2)
 ui.show_message(f"ELE-ECG\n{get_local_version()}")
-
-
-online_lock = asyncio.Event()
-online_lock.clear() #Disconnected at start
 
 # 📶 Wi-Fi Manager
 wifi = WiFiManager(
@@ -62,55 +51,12 @@ wifi = WiFiManager(
 )
 wifi.start(online_lock)
 
-ota_lock = asyncio.Event()
-ota_lock.set()  # Start with sensors enabled
-
 # 🕒 REPL-safe boot delay
 print("⏳ Boot delay... press Stop in Thonny to break into REPL")
 time.sleep(3)
 
-# Global counter for seconds
-uptime_s = 0
-offline_time_s = 0
-watch_dog_time_s = 0
-
-def tick(timer):
-    global uptime_s
-    global offline_time_s
-    global watch_dog_time_s
-    
-    uptime_s += 1  # Timer fires every 1s
-    watch_dog_time_s += 1
-    
-    wdt_reset_limit = 120
-    if (watch_dog_time_s > (wdt_reset_limit - 10)):
-        logger.warn(f"Impending WatchDog Reset {wdt_reset_limit-watch_dog_time_s}")
-    if (watch_dog_time_s > wdt_reset_limit):
-        logger.warn('Trigger WatchDog Reset')
-        machine.reset()
-    
-    if not online_lock.is_set():
-        offline_time_s += 1
-
-# Initialize the timer to call tick() every 1s
-sysTimer = Timer()
-sysTimer.init(mode=Timer.PERIODIC, period=1000, callback=tick)
-
-def get_uptime():
-    return uptime_s
-
-def get_offline_time():
-    return offline_time_s
-
-'''
-# Initialize watchdog with 8000ms timeout
-wdt = WDT(timeout=8000)
-
-async def wdt_feeder():
-    while True:
-        wdt.feed()
-        await asyncio.sleep(2)
-'''
+# --- System Timer ---
+sys_timer = init_sys_timer(online_lock)
 
 # 🧮 Config Sync
 def sync_config_if_changed(sd_path="/sd/config.json", flash_path="/config.json", file_name="config.json"):
@@ -215,7 +161,6 @@ async def drain_laser_data(laser, snapshot_ref, datalogger, ota_lock):
 
 # MQTT Publish
 mqtt_seq_counter = 0
-device_uptime = 0
 async def send_to_thingsboard(client, ota_lock, online_lock, ui):
     global mqtt_seq_counter
     while True:
@@ -380,9 +325,8 @@ async def main():
     client = TBDeviceMqttClient(mqttHost, access_token = mqttKey)
     asyncio.create_task(send_to_thingsboard(client, ota_lock, online_lock, ui))
     
-    global watch_dog_time_s
     while True:
-        watch_dog_time_s = 0 # Clear WDT to prevent reset
+        reset_watchdog_timer() # Clear WDT to prevent reset
         status = wifi.get_status()
         print(f"WiFi Status: {status['WiFi']}, Internet: {status['Internet']}")
         print(f"IP Address: {wifi.get_ip_address()}")
