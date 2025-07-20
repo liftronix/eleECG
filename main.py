@@ -32,11 +32,6 @@ if not safe_pin.value():
     sys.exit()
 '''
 
-#Check mains power condition
-#Enter Low Power if mains power is missing
-if not(machine.Pin(2, machine.Pin.IN).value()):
-    power_state['low_power_mode'] = True
-
 # Set the power pin to HIGH at default
 machine.Pin(2, machine.Pin.OUT).value(1)
 

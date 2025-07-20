@@ -210,6 +210,7 @@ power_state = {
 
 POWER_RESTORE_DEBOUNCE_MS = 10 * 1000  # 10 seconds
 LOW_POWER_DELAY_MS = 1 * 60 * 1000  # 1 minutes
+TICKS_AT_RESET = 15000
 
 def power_cb_stub(timer):
     micropython.schedule(power_cb_scheduled, 0)
@@ -224,19 +225,22 @@ def power_cb_scheduled(_):
         if not mains_on:
             if power_state['mains']:
                 power_state['mains_lost_at'] = now
-                logger.warn('Mains Power: CUTOFF')
+                logger.warn(f"Mains Power: CUTOFF : {now}")
+                if(now < TICKS_AT_RESET):
+                    enter_low_power_mode()
+                    power_state['low_power_mode'] = True
             power_state['mains_restored_at'] = None  # Cancel recovery debounce
         else:
             if not power_state['mains']:
                 power_state['mains_restored_at'] = now  # Just restored
-                logger.warn('Mains Power: RESTORED')
+                logger.warn(f"Mains Power: RESTORED : {now}")
 
         power_state['mains'] = mains_on
 
         # Enter low power mode
         if not mains_on and power_state['mains_lost_at']:
             elapsed = ticks_diff(now, power_state['mains_lost_at'])
-            if elapsed > LOW_POWER_DELAY_MS and not power_state['low_power_mode']:
+            if (elapsed > LOW_POWER_DELAY_MS) and not power_state['low_power_mode']:
                 enter_low_power_mode()
                 power_state['low_power_mode'] = True
 
