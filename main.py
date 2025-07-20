@@ -3,7 +3,7 @@ import machine, gc, os, uos, time, logger, _thread
 from machine import Pin, I2C, WDT, Timer
 
 import sysmon
-from core1_manager import core1_main, stop_core1
+from core1_manager import core1_main, stop_core1, power_state
 from shared_state import get_sensor_snapshot
 from ota_manager import (
     get_local_version,
@@ -32,10 +32,13 @@ if not safe_pin.value():
     sys.exit()
 '''
 
-# Set the pin to HIGH
-low_power = Pin(2, Pin.OUT)
-low_power.value(1)
+#Check mains power condition
+#Enter Low Power if mains power is missing
+if not(machine.Pin(2, machine.Pin.IN).value()):
+    power_state['low_power_mode'] = True
 
+# Set the power pin to HIGH at default
+machine.Pin(2, machine.Pin.OUT).value(1)
 
 # 🖥 Display
 from scaled_ui.oled_ui import OLED_UI
@@ -147,6 +150,10 @@ async def drain_sensor_data(datalogger, ota_lock):
     last_seq = {}
     while True:
         await ota_lock.wait()  # ⛔ Block if OTA is active
+        if power_state['low_power_mode']:
+            logger.warn("💤 Low Power Mode — Sensors Paused")
+            await asyncio.sleep(5)  # Pause during low power
+            continue
         snapshot = get_sensor_snapshot()
         if not snapshot or "payload" not in snapshot or "seq" not in snapshot:
             await asyncio.sleep_ms(100)
@@ -179,6 +186,10 @@ async def drain_sensor_data(datalogger, ota_lock):
 async def drain_laser_data(laser, snapshot_ref, datalogger, ota_lock):
     while True:
         await ota_lock.wait()  # ⛔ Block if OTA is active
+        if power_state['low_power_mode']:
+            logger.warn("💤 Low Power Mode — Laser Paused")
+            await asyncio.sleep(5)  # Pause during low power
+            continue
         try:
             snapshot = await laser.measure_and_log(tag="laser")
             snapshot_ref.clear()
@@ -216,6 +227,10 @@ async def send_to_thingsboard(client, ota_lock, online_lock, ui):
         try:
             await asyncio.wait_for(online_lock.wait(), timeout=20)
             await ota_lock.wait()  # ⛔ Block if OTA is active
+            if power_state['low_power_mode']:
+                logger.warn("💤 Low Power Mode — skipping telemetry this round")
+                await asyncio.sleep(5)  # Pause during low power
+                continue
             try:
                 client.connect()
                 mqtt_seq_counter += 1
@@ -298,6 +313,10 @@ async def auto_refresh_ui(ui, ota_lock, online_lock, interval=2):
     global mqtt_seq_counter
     while True:
         await ota_lock.wait()  # ⛔ Block if OTA is active
+        if power_state['low_power_mode']:
+            ui.show_message(f"  LOW\n POWER")
+            await asyncio.sleep(5)  # Pause during low power
+            continue
         if online_lock.is_set():  # ⛔ Connected mode, skip display refresh
             ui.show_message(f"MQTT\n{mqtt_seq_counter}")
         else:

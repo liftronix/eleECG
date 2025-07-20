@@ -2,6 +2,10 @@ from machine import ADC, Pin, I2C, Timer
 from mpu6050_minimal import MPU6050
 from shared_state import push_sensor_data
 import utime, math, micropython
+import random
+from time import ticks_ms, ticks_diff
+import logger
+
 
 micropython.alloc_emergency_exception_buf(100)
 
@@ -108,11 +112,17 @@ def mpu_temp_cb_scheduled(_):
     if not mpu: return
     try:
         temperature = mpu.get_temp()
+        humidity = round(100*random.random())
         
         push_sensor_data({
             'sensor': 'mpu_temp',
             'disp_data': temperature,
             'temp': temperature
+        })
+        push_sensor_data({
+            'sensor': 'humidity',
+            'disp_data': humidity,
+            'humid': humidity
         })
 
     except Exception as e:
@@ -153,6 +163,20 @@ R2 = 3590   # Resistor to GND
 # Divider correction factor
 voltage_divider_factor = (R1 + R2) / R2
 
+# --- Rolling Average Setup ---
+WINDOW_SIZE = 10
+voltage_samples = []
+
+def get_smoothed_voltage():
+    voltage = read_battery_voltage()
+    # Maintain a fixed-size buffer
+    voltage_samples.append(voltage)
+    if len(voltage_samples) > WINDOW_SIZE:
+        voltage_samples.pop(0)
+    
+    avg_voltage = sum(voltage_samples) / len(voltage_samples)
+    return round(avg_voltage, 2)
+
 def read_battery_voltage():
     raw = adc.read_u16()
     voltage_at_pin = (raw / 65535) * VREF
@@ -162,25 +186,75 @@ def read_battery_voltage():
 def read_charger_status():
     return "OFF" if charger_pin.value() else "ON"
 
+# GPIO2 controls the MOSFET
+power_gate_pin = Pin(2, Pin.OUT)
+
+def enter_low_power_mode():
+    power_gate_pin.value(0)  # Turn off peripherals
+    logger.warn('Entering Low Power Mode')
+    #push_sensor_data({'event': 'Low Power Mode Activated'})
+    # Optional: reduce timer frequency if your callback is very frequent
+
+def exit_low_power_mode():
+    power_gate_pin.value(1)  # Turn peripherals back on
+    logger.warn('Exiting Low Power Mode')
+    #push_sensor_data({'event': 'Exited Low Power Mode'})
+    
+# State tracking
+power_state = {
+    'mains': True,
+    'low_power_mode': False,
+    'mains_lost_at': None,
+    'mains_restored_at': None
+}
+
+POWER_RESTORE_DEBOUNCE_MS = 10 * 1000  # 10 seconds
+LOW_POWER_DELAY_MS = 1 * 60 * 1000  # 1 minutes
+
 def power_cb_stub(timer):
     micropython.schedule(power_cb_scheduled, 0)
-    
+
 def power_cb_scheduled(_):
     try:
-        vbat = read_battery_voltage()
-        mains = read_charger_status()
-        push_sensor_data({
-            'sensor': 'mains',
-            'disp_data': mains,
-            'AC_Power': mains
-        })
-        push_sensor_data({
-            'sensor': 'batt',
-            'disp_data': f"{vbat}V",
-            'V_Batt':vbat
-        })
+        vbat = get_smoothed_voltage()
+        mains_on = read_charger_status() == 'ON'
+        now = ticks_ms()
+
+        # Track mains OFF time
+        if not mains_on:
+            if power_state['mains']:
+                power_state['mains_lost_at'] = now
+                logger.warn('Mains Power: CUTOFF')
+            power_state['mains_restored_at'] = None  # Cancel recovery debounce
+        else:
+            if not power_state['mains']:
+                power_state['mains_restored_at'] = now  # Just restored
+                logger.warn('Mains Power: RESTORED')
+
+        power_state['mains'] = mains_on
+
+        # Enter low power mode
+        if not mains_on and power_state['mains_lost_at']:
+            elapsed = ticks_diff(now, power_state['mains_lost_at'])
+            if elapsed > LOW_POWER_DELAY_MS and not power_state['low_power_mode']:
+                enter_low_power_mode()
+                power_state['low_power_mode'] = True
+
+        # Debounced recovery
+        if mains_on and power_state['low_power_mode'] and power_state['mains_restored_at']:
+            restore_elapsed = ticks_diff(now, power_state['mains_restored_at'])
+            if restore_elapsed > POWER_RESTORE_DEBOUNCE_MS:
+                exit_low_power_mode()
+                power_state['low_power_mode'] = False
+                power_state['mains_restored_at'] = None  # Clear timestamp after recovery
+
+        # Telemetry
+        push_sensor_data({'sensor': 'batt', 'disp_data': f"{vbat}V", 'V_Batt': vbat})
+        push_sensor_data({'sensor': 'mains', 'disp_data': 'ON' if mains_on else 'OFF', 'AC_Power': 'ON' if mains_on else 'OFF'})
+
     except Exception as e:
         push_sensor_data({'sensor': 'Mains', 'error': str(e)})
+
 
 
 # --- Core 1 Entry Point ---
