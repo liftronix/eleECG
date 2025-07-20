@@ -29,7 +29,7 @@ ota_lock = asyncio.Event()
 ota_lock.set()  # Start with sensors enabled
 
 from platform_boot import (
-    init_power_pin, init_display, init_sys_timer,
+    init_power_pin, init_display, init_sys_timer, deinit_sys_timer,
     get_uptime, get_offline_time, reset_watchdog_timer
 )
 
@@ -158,6 +158,11 @@ async def drain_laser_data(laser, snapshot_ref, datalogger, ota_lock):
             logger.warn(f"Laser: Polling error — {e}")
         await asyncio.sleep_ms(1000)
 
+import ujson
+
+def log_payload_size(payload):
+    payload_str = ujson.dumps(payload)
+    return len(payload_str)
 
 # MQTT Publish
 mqtt_seq_counter = 0
@@ -210,6 +215,7 @@ async def send_to_thingsboard(client, ota_lock, online_lock, ui):
 
                 client.send_telemetry(payload, qos=1)
                 logger.info(f"📤 Telemetry sent: {payload}")
+                logger.warn(f"Payload size = {log_payload_size(payload)} bytes")
                 client.disconnect()
             except Exception as e:
                 logger.error(f"⚠️ MQTT Publish Error: {e}")
@@ -342,8 +348,7 @@ try:
 except KeyboardInterrupt:
     logger.info("🔻 Ctrl+C detected — shutting down...")
     stop_core1()
-    if sysTimer:
-        sysTimer.deinit()
+    deinit_sys_timer()
     time.sleep(1)
     logger.info("🛑 System shutdown complete.")
 

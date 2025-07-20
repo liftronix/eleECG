@@ -9,6 +9,8 @@ uptime_s = 0
 offline_time_s = 0
 watch_dog_time_s = 0
 
+sys_timer = None
+
 # --- Power Pin ---
 def init_power_pin(pin_num=2):
     """Sets the default power MOSFET pin HIGH"""
@@ -30,7 +32,7 @@ def init_display(scl=5, sda=4):
 # --- System Timer ---
 def init_sys_timer(online_lock, reset_threshold=120):
     """Starts a periodic system timer for uptime and WDT logic"""
-
+    
     def tick(timer):
         global uptime_s, offline_time_s, watch_dog_time_s
 
@@ -45,7 +47,8 @@ def init_sys_timer(online_lock, reset_threshold=120):
 
         if not online_lock.is_set():
             offline_time_s += 1
-
+    
+    global sys_timer
     sys_timer = Timer()
     sys_timer.init(mode=Timer.PERIODIC, period=1000, callback=tick)
     return sys_timer
@@ -63,3 +66,10 @@ def get_watchdog_time():
 def reset_watchdog_timer():
     global watch_dog_time_s
     watch_dog_time_s = 0
+
+def deinit_sys_timer():
+    global sys_timer
+    if sys_timer:
+        sys_timer.deinit()
+        sys_timer = None
+        logger.info("sys_timer Stopped")
