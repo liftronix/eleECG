@@ -208,7 +208,12 @@ class DataLogger:
 
                     # ✏️ Write buffered data to file
                     data = "\n".join(self._log_buffer) + "\n"
-                    self.sd.write_file(self._current_filename, data, append=True, safe=False)
+                    try:
+                        self.sd.write_file(self._current_filename, data, append=True, safe=False)
+                    except MemoryError:
+                        Logger.error("SD write failed due to MemoryError — heap may be locked")
+                        self._log_buffer.clear()  # Optional safety flush
+                        await asyncio.sleep(0.5)  # Let the system recover
 
                     Logger.debug("Flushed {} log line(s) → {}".format(len(self._log_buffer), self._current_filename))
                     self._log_buffer.clear()

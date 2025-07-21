@@ -19,6 +19,8 @@ class WiFiManager:
         self.internet_status = "Disconnected"  # Track Internet status
         self.connecting = False
         self.time_sync = "Pending"
+        self.time_sync_in_progress = False
+        self.last_ntp_attempt = 0  # utime.ticks_ms()
 
     async def connect(self):
         """Connect to Wi-Fi with error handling and guarded reconnection logic."""
@@ -73,9 +75,12 @@ class WiFiManager:
                     self.internet_available = True
                     self.internet_status = "Connected"
                     online_lock.set()
-                    if self.time_sync == "Pending":
-                        asyncio.create_task(self.safe_ntp_sync())
+                    
+                if self.time_sync == "Pending" and not self.time_sync_in_progress:
+                    asyncio.create_task(self.safe_ntp_sync())
+                    
                 return
+            
             except Exception as e:
                 Logger.warn(f"Internet check failed: {e}")
                 await asyncio.sleep(2)  # Short delay before retry
@@ -131,21 +136,31 @@ class WiFiManager:
             self.ip_address = self.wlan.ifconfig()[0]
             return self.ip_address
         return "Not connected"
-    
+
     async def safe_ntp_sync(self):
-        """Attempt NTP sync with timeout protection."""
-        try:
-            await asyncio.wait_for(asyncio.create_task(self._ntp_wrapper()), timeout=6)
-            self.time_sync = "Synchronized"
-            Logger.info("System time synced.")
-        except asyncio.TimeoutError:
-            Logger.warn("NTP sync timed out.")
-        except Exception as e:
-            Logger.warn(f"NTP sync failed: {e}")
-            
-    async def _ntp_wrapper(self):
-        ntptime.settime()
-        time.localtime(time.time() + 19800)  # IST offset
+        """Retryable time sync with flag tracking and delayed reattempts."""
+        self.time_sync_in_progress = True
+        attempt_count = 0
+        max_attempts = 3
+
+        while attempt_count < max_attempts and self.time_sync != "Synchronized":
+            try:
+                Logger.debug(f"NTP sync attempt {attempt_count + 1}")
+                ntptime.settime()
+                time.localtime(time.time() + 19800)
+                self.time_sync = "Synchronized"
+                Logger.info("System time synced successfully.")
+                break
+            except Exception as e:
+                Logger.warn(f"NTP sync failed: {e}")
+                attempt_count += 1
+                await asyncio.sleep(10)  # Delay between retries
+
+        if self.time_sync != "Synchronized":
+            Logger.warn("NTP sync unsuccessful after retries.")
+            self.time_sync = "Pending"  # Remains pending for future attempts
+
+        self.time_sync_in_progress = False
 
 
 if __name__ == "__main__":

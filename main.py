@@ -1,6 +1,6 @@
 import uasyncio as asyncio
 import machine, gc, os, uos, time, logger, _thread
-from machine import Pin, I2C, WDT, Timer
+from machine import Pin, I2C, WDT, Timer, RTC
 
 import sysmon
 from core1_manager import core1_main, stop_core1, power_state
@@ -21,6 +21,18 @@ from laser_module import LaserModule
 from config_loader import load_config
 
 config = load_config()
+
+if "reset_timestamp.txt" in os.listdir("/"):
+    with open("/reset_timestamp.txt", "r") as f:
+        reset_time_stamp = f.read()
+        logger.warn(f"Starting Timestamp: {time.localtime()}")
+        t = time.localtime(int(reset_time_stamp))
+        logger.warn(f"Restored Timestamp: {t}")
+        rtc_time = (t[0], t[1], t[2], t[6], t[3], t[4], t[5], 0)
+        # year, month, day, weekday, hour, minute, second, subseconds
+        rtc = RTC()
+        rtc.datetime(rtc_time)
+    os.remove("reset_timestamp.txt")
 
 online_lock = asyncio.Event()
 online_lock.clear() #Disconnected at start
@@ -177,7 +189,9 @@ async def send_to_thingsboard(client, ota_lock, online_lock, ui):
                 await asyncio.sleep(5)  # Pause during low power
                 continue
             try:
-                client.connect()
+                if not (client.is_connected()):
+                    client.connect()
+                
                 mqtt_seq_counter += 1
                 
                 # Read global snapshot safely
@@ -216,7 +230,6 @@ async def send_to_thingsboard(client, ota_lock, online_lock, ui):
                 client.send_telemetry(payload, qos=1)
                 logger.info(f"📤 Telemetry sent: {payload}")
                 logger.warn(f"Payload size = {log_payload_size(payload)} bytes")
-                client.disconnect()
             except Exception as e:
                 logger.error(f"⚠️ MQTT Publish Error: {e}")
         
@@ -334,12 +347,16 @@ async def main():
     while True:
         reset_watchdog_timer() # Clear WDT to prevent reset
         status = wifi.get_status()
-        print(f"WiFi Status: {status['WiFi']}, Internet: {status['Internet']}")
+        logger.info(f"WiFi Status: {status['WiFi']}, Internet: {status['Internet']}")
         print(f"IP Address: {wifi.get_ip_address()}")
        
         if not ota_lock.is_set():
             logger.debug("📴 Sensor paused due to OTA activity")
         
+        if not online_lock.is_set():
+            logger.debug("📴 MQTT Paused due to no connectivity")
+            client.disconnect()
+            
         await asyncio.sleep(10)
 
 # 🧹 Graceful Shutdown

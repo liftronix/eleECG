@@ -1,16 +1,16 @@
 {
-  "version": "0.4.37",
+  "version": "0.4.39",
   "files": {
     "config.json": {
-      "sha256": "536aec6e675c41e993cabce5b946437c66644b41ab760f71522e3c86f77af92a",
-      "size": 211
+      "sha256": "7a9a04dfa5e230588d5374d85f6ee6cafca91377b5a8d40727e83b1c5db09eed",
+      "size": 302
     },
     "main.py": {
-      "sha256": "6ec461ea43f20063d6f104cb3d0912c32736cfbcf3baaa96388138ff53ad7ae9",
-      "size": 12488
+      "sha256": "2fc980d277dbe5be0e3ad501fff407be425ee2b17db3cefe7648f7d1bd339f50",
+      "size": 13214
     },
     "version.txt": {
-      "sha256": "47e1f0270f91b2102decf980f27e970f5603a3ef7a6dd2c1a4f43cb9bd9f230e",
+      "sha256": "8436d50c81b9f74525fc7661542c39582dae330118a54ba35351387e03ee1a14",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -18,16 +18,16 @@
       "size": 241
     },
     "lib/core1_manager.py": {
-      "sha256": "b4f954b84f002ac4c65cbadd471e4b9a543e20ff98619098d81667728c6b909a",
-      "size": 9811
+      "sha256": "1b8572595f8212a96818363f554b6d6d2e1eb1dee0ef0297ce4024f352da5b42",
+      "size": 9809
     },
     "lib/cpu_baseline.py": {
       "sha256": "4c6063a0fd5c4452e5caccc083a4d6e26575d81fced8fae8fb18867c7591fc91",
       "size": 962
     },
     "lib/datalogger.py": {
-      "sha256": "99020ac176a697d77f12c0a4af2e9750dfe3434ba4c63756304d265c40540f88",
-      "size": 10792
+      "sha256": "5d4bd468bbcf4fb155d1843ac5a8d260ca5bf8419a70420c455605237a5d7e79",
+      "size": 11113
     },
     "lib/laser_module.py": {
       "sha256": "75a837cba80a5aa473562b1da9159b19bfa291d996f60b08166c19f4cdc670cd",
@@ -54,8 +54,8 @@
       "size": 6679
     },
     "lib/platform_boot.py": {
-      "sha256": "119a12d2377a479ef5af117dd6b8353398d496ed0339b367a0a2831926b19168",
-      "size": 1927
+      "sha256": "5e43bf82bfbe9cf9d536766ed58da7ca2937d6dda44175628cdd55dd38c7e7a5",
+      "size": 2218
     },
     "lib/sdcard.py": {
       "sha256": "5aa0839906790ce26c354fc6a79e5fe711e6df985e34ce7b6035b6193df8e2c1",
@@ -86,8 +86,8 @@
       "size": 1806
     },
     "lib/wifi_manager.py": {
-      "sha256": "9e915b595b9e8a105718a5cac5b4b156421a6be1b66ce37a58327fa77a7cb5fa",
-      "size": 7126
+      "sha256": "3c5c1be69eb7bc75d2bae0cf07f571225d94a59684a6f8286772768beaedb0ce",
+      "size": 7752
     },
     "lib/scaled_ui/button_handler.py": {
       "sha256": "6b1d548c441bbe49324eecc8627ff20c618a1e57d2c56ad19dc00509dabb1d29",

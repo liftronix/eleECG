@@ -43,6 +43,11 @@ def init_sys_timer(online_lock, reset_threshold=120):
             logger.warn(f"Impending WatchDog Reset {reset_threshold - watch_dog_time_s}")
         if watch_dog_time_s > reset_threshold:
             logger.warn("Trigger WatchDog Reset")
+            with open("/reset_timestamp.txt", "w") as f:
+                reset_time_stamp = str(int(time.time()))  # Save as raw epoch int
+                f.write(reset_time_stamp)
+                logger.warn(f"Saving Reset Timestamp: {reset_time_stamp}")
+                time.sleep(1)
             machine.reset()
 
         if not online_lock.is_set():

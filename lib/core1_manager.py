@@ -112,7 +112,7 @@ def mpu_temp_cb_scheduled(_):
     if not mpu: return
     try:
         temperature = mpu.get_temp()
-        humidity = round(100*random.random())
+        humidity = random.randint(60, 75)
         
         push_sensor_data({
             'sensor': 'mpu_temp',
@@ -158,8 +158,8 @@ adc = ADC(Pin(28)) # ADC for battery voltage on GPIO28 (ADC2)
 charger_pin = Pin(10, Pin.IN)# Charger indication input on GPIO10
 # Voltage reference and resistor values
 VREF = 3.3  # Reference voltage for ADC
-R1 = 9180   # Resistor to battery positive
-R2 = 3590   # Resistor to GND
+R1 = 9270   # Resistor to battery positive
+R2 = 3559   # Resistor to GND
 # Divider correction factor
 voltage_divider_factor = (R1 + R2) / R2
 
@@ -208,8 +208,8 @@ power_state = {
     'mains_restored_at': None
 }
 
-POWER_RESTORE_DEBOUNCE_MS = 10 * 1000  # 10 seconds
-LOW_POWER_DELAY_MS = 1 * 60 * 1000  # 1 minutes
+POWER_RESTORE_DEBOUNCE_MS = 30 * 1000  # 10 seconds
+LOW_POWER_DELAY_MS = 20 * 60 * 1000  # 20 minutes
 TICKS_AT_RESET = 15000
 
 def power_cb_stub(timer):
