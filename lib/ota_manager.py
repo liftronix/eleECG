@@ -162,4 +162,4 @@ async def check_and_download_ota(led_blinker, ota_lock, display, online_lock):
         except asyncio.TimeoutError:
             logger.warn("⏳ Online check timed out — skipping OTA this round")            
         
-        await asyncio.sleep(120)
+        await asyncio.sleep(300)

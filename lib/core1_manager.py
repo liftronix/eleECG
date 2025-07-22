@@ -158,8 +158,8 @@ adc = ADC(Pin(28)) # ADC for battery voltage on GPIO28 (ADC2)
 charger_pin = Pin(10, Pin.IN)# Charger indication input on GPIO10
 # Voltage reference and resistor values
 VREF = 3.3  # Reference voltage for ADC
-R1 = 9270   # Resistor to battery positive
-R2 = 3559   # Resistor to GND
+R1 = 10000   # Resistor to battery positive
+R2 = 3600   # Resistor to GND
 # Divider correction factor
 voltage_divider_factor = (R1 + R2) / R2
 

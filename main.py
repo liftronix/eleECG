@@ -205,7 +205,7 @@ async def send_to_thingsboard(client, ota_lock, online_lock, ui):
                 l_time = "{:02d}:{:02d}:{:02d}".format(
                     local_time[3], local_time[4], local_time[5]
                 )
-
+                '''
                 # Package Telemetry Data
                 payload = {
                     'Seq': str(mqtt_seq_counter),
@@ -215,13 +215,21 @@ async def send_to_thingsboard(client, ota_lock, online_lock, ui):
                     'device_date': l_date,
                     'device_time': l_time
                 }
+                '''
+                # Package Telemetry Data
+                payload = {
+                    'Seq': str(mqtt_seq_counter),
+                    'FW_Version': f"{get_local_version()}",
+                    'device_date': l_date,
+                    'device_time': l_time
+                }
 
                 for sensor, data in snapshot.items():
                     value_dict = data.get("value", {})
                     disp_data = value_dict.get("disp_data")
                     
                     if disp_data is not None:
-                        payload[f"{sensor}_value"] = disp_data
+                        payload[f"{sensor}_val"] = disp_data
                     else:
                         # Optional: log warning and include fallback
                         logger.warn(f"{sensor}: disp_data missing. Sending error or raw value.")
