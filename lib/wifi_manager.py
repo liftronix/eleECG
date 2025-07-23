@@ -57,40 +57,46 @@ class WiFiManager:
         finally:
             self.connecting = False  # Guard flag OFF
 
+    async def _http_probe(self, url):
+        try:
+            response = urequests.get(url, timeout=3)  # Still keep socket timeout
+            response.close()
+            return True
+        except Exception as e:
+            Logger.warn(f"HTTP probe failed: {e}")
+            return False
+
     async def check_internet(self, online_lock):
-        """ Check Internet availability with retry logic """
+        """ Fast-failing Internet check with full request timeout protection """
         if not self.wlan.isconnected():
             self.internet_available = False
             self.internet_status = "Disconnected"
             self.time_sync = "Pending"
             online_lock.clear()
-            return  # Skip check if Wi-Fi is disconnected
+            return
 
-        retry_count = 3
-        for _ in range(retry_count):
-            try:
-                response = urequests.get("http://clients3.google.com/generate_204", timeout=3)
-                response.close()
-                if not self.internet_available:
-                    self.internet_available = True
-                    self.internet_status = "Connected"
-                    online_lock.set()
-                    
-                if self.time_sync == "Pending" and not self.time_sync_in_progress:
-                    asyncio.create_task(self.safe_ntp_sync())
-                    
-                return
-            
-            except Exception as e:
-                Logger.warn(f"Internet check failed: {e}")
-                await asyncio.sleep(2)  # Short delay before retry
+        success = False
+        try:
+            # Entire HTTP lifecycle limited to 4 seconds total
+            success = await asyncio.wait_for(self._http_probe("http://clients3.google.com/generate_204"), timeout=4)
+        except asyncio.TimeoutError:
+            Logger.warn("Internet check hard timeout hit.")
 
-        if self.internet_available:  # Only log change if status was previously connected
+        if success:
+            if not self.internet_available:
+                self.internet_available = True
+                self.internet_status = "Connected"
+                online_lock.set()
+
+            if self.time_sync == "Pending" and not self.time_sync_in_progress:
+                asyncio.create_task(self.safe_ntp_sync())
+        else:
+            if self.internet_available:
+                Logger.error("Internet connection lost!")
             self.internet_available = False
             self.internet_status = "Disconnected"
             self.time_sync = "Pending"
             online_lock.clear()
-            Logger.error("Internet connection lost!")
 
     async def monitor_connection(self, online_lock):
         """ Continuously monitor Wi-Fi & Internet status, ensuring initial and recovery connection. """

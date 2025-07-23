@@ -189,9 +189,8 @@ async def send_to_thingsboard(client, ota_lock, online_lock, ui):
                 await asyncio.sleep(5)  # Pause during low power
                 continue
             try:
-                if not (client.is_connected()):
-                    client.connect()
-                
+                mqtt_connect_status = client.connect()
+                logger.warn(f"MQTT Connect: {mqtt_connect_status}")
                 mqtt_seq_counter += 1
                 
                 # Read global snapshot safely
@@ -235,7 +234,7 @@ async def send_to_thingsboard(client, ota_lock, online_lock, ui):
                         logger.warn(f"{sensor}: disp_data missing. Sending error or raw value.")
                         payload[f"{sensor}_value"] = value_dict.get("error", str(value_dict))
 
-                client.send_telemetry(payload, qos=1)
+                client.send_telemetry(payload, qos=0)
                 logger.info(f"📤 Telemetry sent: {payload}")
                 logger.warn(f"Payload size = {log_payload_size(payload)} bytes")
             except Exception as e:
@@ -346,6 +345,7 @@ async def main():
     buttons.attach_ui(ui)
     buttons.start()
     
+    
     #MQTT Initialization
     mqttHost = config.get("mqtt").get("host")
     mqttKey = config.get("mqtt").get("key")
@@ -361,9 +361,11 @@ async def main():
         if not ota_lock.is_set():
             logger.debug("📴 Sensor paused due to OTA activity")
         
+        
         if not online_lock.is_set():
-            logger.debug("📴 MQTT Paused due to no connectivity")
-            client.disconnect()
+            if(client.is_connected()):
+                logger.warn("📴 MQTT Paused due to no connectivity")
+                client.disconnect()
             
         await asyncio.sleep(10)
 

@@ -1,16 +1,16 @@
 {
-  "version": "0.4.40",
+  "version": "0.4.41",
   "files": {
     "config.json": {
       "sha256": "7a9a04dfa5e230588d5374d85f6ee6cafca91377b5a8d40727e83b1c5db09eed",
       "size": 302
     },
     "main.py": {
-      "sha256": "3eb3570154646cc0937a578e0e41bf9209bd0b38424a83acda55d4885586a8a6",
-      "size": 13541
+      "sha256": "ae6e6ba31a8320dbd17a5c2a8a8f5851afa9d13b7897c3ae71ac3a962a9307e1",
+      "size": 13624
     },
     "version.txt": {
-      "sha256": "9aecbebe1b26b631a16a2b188f5da3d97997ba741f120911aec1637e8231250b",
+      "sha256": "dafbfe6266e7e4e2f322c84526a5121d37bfe7cdee4fedf6cfa8bca81c3485d3",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -18,8 +18,8 @@
       "size": 241
     },
     "lib/core1_manager.py": {
-      "sha256": "e3c1a56daef182c4e07648623868bdce7dc8da399810b48bdd99751b1b18f15a",
-      "size": 9810
+      "sha256": "e77f66fcedd27ecf46649ec0a4c62571c447f1184f0290df1baf820140140e9e",
+      "size": 9809
     },
     "lib/cpu_baseline.py": {
       "sha256": "4c6063a0fd5c4452e5caccc083a4d6e26575d81fced8fae8fb18867c7591fc91",
@@ -86,8 +86,8 @@
       "size": 1806
     },
     "lib/wifi_manager.py": {
-      "sha256": "3c5c1be69eb7bc75d2bae0cf07f571225d94a59684a6f8286772768beaedb0ce",
-      "size": 7752
+      "sha256": "e0f9677342f941f83aa08457d504ebc559eec87c1e4d54d739ff738c85fbd14f",
+      "size": 7867
     },
     "lib/scaled_ui/button_handler.py": {
       "sha256": "6b1d548c441bbe49324eecc8627ff20c618a1e57d2c56ad19dc00509dabb1d29",

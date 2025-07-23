@@ -208,8 +208,8 @@ power_state = {
     'mains_restored_at': None
 }
 
-POWER_RESTORE_DEBOUNCE_MS = 30 * 1000  # 10 seconds
-LOW_POWER_DELAY_MS = 20 * 60 * 1000  # 20 minutes
+POWER_RESTORE_DEBOUNCE_MS = 10 * 1000  # 10 seconds
+LOW_POWER_DELAY_MS = 1 * 60 * 1000  # 20 minutes
 TICKS_AT_RESET = 15000
 
 def power_cb_stub(timer):
