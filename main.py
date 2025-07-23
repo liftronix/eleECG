@@ -189,8 +189,7 @@ async def send_to_thingsboard(client, ota_lock, online_lock, ui):
                 await asyncio.sleep(5)  # Pause during low power
                 continue
             try:
-                mqtt_connect_status = client.connect()
-                logger.warn(f"MQTT Connect: {mqtt_connect_status}")
+                client.connect()
                 mqtt_seq_counter += 1
                 
                 # Read global snapshot safely
@@ -360,12 +359,6 @@ async def main():
        
         if not ota_lock.is_set():
             logger.debug("📴 Sensor paused due to OTA activity")
-        
-        
-        if not online_lock.is_set():
-            if(client.is_connected()):
-                logger.warn("📴 MQTT Paused due to no connectivity")
-                client.disconnect()
             
         await asyncio.sleep(10)
 

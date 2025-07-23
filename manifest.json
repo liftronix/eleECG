@@ -1,16 +1,16 @@
 {
-  "version": "0.4.41",
+  "version": "0.4.42",
   "files": {
     "config.json": {
       "sha256": "7a9a04dfa5e230588d5374d85f6ee6cafca91377b5a8d40727e83b1c5db09eed",
       "size": 302
     },
     "main.py": {
-      "sha256": "ae6e6ba31a8320dbd17a5c2a8a8f5851afa9d13b7897c3ae71ac3a962a9307e1",
-      "size": 13624
+      "sha256": "b579b129b6acf8dd76f2da4ea8f8aec397709484e339c8bbe6d3e1423ef0e968",
+      "size": 13326
     },
     "version.txt": {
-      "sha256": "dafbfe6266e7e4e2f322c84526a5121d37bfe7cdee4fedf6cfa8bca81c3485d3",
+      "sha256": "78da42d58c89931e9e5d6971cf7ff5996bc13563771490944e8c1e36d63f07eb",
       "size": 6
     },
     "lib/config_loader.py": {
