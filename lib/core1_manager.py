@@ -5,7 +5,9 @@ import utime, math, micropython
 import random
 from time import ticks_ms, ticks_diff
 import logger
+from config_loader import load_config
 
+config = load_config()
 
 micropython.alloc_emergency_exception_buf(100)
 
@@ -92,7 +94,7 @@ def mpu_cb_scheduled(_):
 
         # Vibration Index
         vib_index = rms_mag * peak_z
-        
+        '''
         push_sensor_data({
             'sensor': 'mpu',
             'disp_data': vib_index,
@@ -100,7 +102,32 @@ def mpu_cb_scheduled(_):
             'rms_mag': rms_mag,
             'peak_z': peak_z
         })
-
+        '''
+        push_sensor_data({
+            'sensor': 'accel_x',
+            'disp_data': mpu.get_accel()['x']
+        })
+        push_sensor_data({
+            'sensor': 'accel_y',
+            'disp_data': mpu.get_accel()['y']
+        })
+        push_sensor_data({
+            'sensor': 'accel_z',
+            'disp_data': mpu.get_accel()['z']
+        })
+        push_sensor_data({
+            'sensor': 'gyro_x',
+            'disp_data': mpu.get_gyro()['x']
+        })
+        push_sensor_data({
+            'sensor': 'gyro_y',
+            'disp_data': mpu.get_gyro()['y']
+        })
+        push_sensor_data({
+            'sensor': 'gyro_z',
+            'disp_data': mpu.get_gyro()['z']
+        })
+        
     except Exception as e:
         push_sensor_data({'sensor': 'mpu', 'error': str(e)})
 
@@ -208,9 +235,19 @@ power_state = {
     'mains_restored_at': None
 }
 
-POWER_RESTORE_DEBOUNCE_MS = 10 * 1000  # 10 seconds
-LOW_POWER_DELAY_MS = 1 * 60 * 1000  # 20 minutes
-TICKS_AT_RESET = 15000
+try:
+    POWER_RESTORE_DEBOUNCE_MS = int(config.get('low_power').get('restore_debounce_sec'))*1000
+except:
+    POWER_RESTORE_DEBOUNCE_MS = 30 * 1000  # 30 seconds
+logger.info(f"POWER_RESTORE_DEBOUNCE_MS: {POWER_RESTORE_DEBOUNCE_MS}")
+
+try:
+    LOW_POWER_DELAY_MS = int(config.get('low_power').get('battery_time_mins'))*60*1000
+except:
+    LOW_POWER_DELAY_MS = 20 * 60 * 1000  # 20 minutes
+logger.info(f"LOW_POWER_DELAY_MS: {LOW_POWER_DELAY_MS}")
+
+TICKS_AT_RESET = 15000 #To track if a reset happened in Low Power Mode
 
 def power_cb_stub(timer):
     micropython.schedule(power_cb_scheduled, 0)

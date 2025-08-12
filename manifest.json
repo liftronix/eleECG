@@ -1,16 +1,16 @@
 {
-  "version": "0.4.42",
+  "version": "0.4.43",
   "files": {
     "config.json": {
-      "sha256": "7a9a04dfa5e230588d5374d85f6ee6cafca91377b5a8d40727e83b1c5db09eed",
-      "size": 302
+      "sha256": "4978e3ae3b3c62519afab6b6f3fa39780ae120abcede6ae089598a049c39e870",
+      "size": 484
     },
     "main.py": {
       "sha256": "b579b129b6acf8dd76f2da4ea8f8aec397709484e339c8bbe6d3e1423ef0e968",
       "size": 13326
     },
     "version.txt": {
-      "sha256": "78da42d58c89931e9e5d6971cf7ff5996bc13563771490944e8c1e36d63f07eb",
+      "sha256": "72e9297951726d54cffd210f053e8d686f48d12cd377e3eef40f1bf9a8053a6f",
       "size": 6
     },
     "lib/config_loader.py": {
@@ -18,8 +18,8 @@
       "size": 241
     },
     "lib/core1_manager.py": {
-      "sha256": "e77f66fcedd27ecf46649ec0a4c62571c447f1184f0290df1baf820140140e9e",
-      "size": 9809
+      "sha256": "9f9513cf0f286a54cf8a50112025f02dfed8d777e1f6a48f00e1253603a099c7",
+      "size": 11020
     },
     "lib/cpu_baseline.py": {
       "sha256": "4c6063a0fd5c4452e5caccc083a4d6e26575d81fced8fae8fb18867c7591fc91",
