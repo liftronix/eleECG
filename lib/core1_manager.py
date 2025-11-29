@@ -56,7 +56,7 @@ def mic_cb_scheduled(_):
         metrics = compute_metrics(samples)
         push_sensor_data({
             'sensor': 'mic',
-            'disp_data':metrics['ptp'],
+            'disp_data':metrics['db'],
             'rms': metrics['rms'],
             'db': metrics['db'],
             'P2P': metrics['ptp']
@@ -154,6 +154,61 @@ def mpu_temp_cb_scheduled(_):
 
     except Exception as e:
         push_sensor_data({'sensor': 'mpu_temp', 'error': str(e)})
+
+
+# --- AHT10 Setup  ---
+import ahtx0
+try:
+    aht_i2c = I2C(0, scl=Pin(5), sda=Pin(4), freq=100000)
+    utime.sleep_ms(50)  # AHT10 power-on stabilization
+    aht = ahtx0.AHT10(aht_i2c)
+except Exception as e:
+    aht = None
+    push_sensor_data({'sensor': 'aht10', 'error': 'Init failed: {}'.format(e)})
+
+def read_aht():
+    if not aht:
+        return None, None
+
+    for attempt in range(3):  # retry 3 times
+        try:
+            utime.sleep_ms(10)
+            aht._trigger_measurement()
+            # Wait until ready with timeout
+            for _ in range(40):   # max ~200ms
+                if not (aht.status & aht.AHTX0_STATUS_BUSY):
+                    break
+                utime.sleep_ms(5)
+
+            aht._read_to_buffer() 
+            temp = aht.temperature
+            hum = aht.relative_humidity
+            return temp, hum
+        except Exception:
+            utime.sleep_ms(20)
+    
+    return None, None
+
+
+def aht10_cb_stub(timer):
+    micropython.schedule(aht10_cb_scheduled, 0)
+
+def aht10_cb_scheduled(_):
+    if not aht:
+        return
+
+    try:
+        temp, hum = read_aht()
+        if temp is None:
+            push_sensor_data({'sensor': 'aht10', 'error': 'Read failed'})
+            return
+
+        push_sensor_data({'sensor': 'temperature', 'disp_data': temp, 'temp': temp})
+        push_sensor_data({'sensor': 'humidity', 'disp_data': hum, 'humid': hum})
+
+    except Exception as e:
+        push_sensor_data({'sensor': 'aht10', 'error': str(e)})
+
 
 # --- DOOR Sensor Setup ---
 # Initialize GPIO 0 and GPIO 1 as inputs
@@ -309,7 +364,10 @@ def core1_main():
         mpu_timer = Timer()
         mpu_timer.init(freq=1, mode=Timer.PERIODIC, callback=mpu_cb_stub)
     
-    if mpu:
+    if aht:
+        aht10_timer = Timer()
+        aht10_timer.init(freq=1, mode=Timer.PERIODIC, callback=aht10_cb_stub)
+    elif mpu:
         mpu_temp_timer = Timer()
         mpu_temp_timer.init(freq=1, mode=Timer.PERIODIC, callback=mpu_temp_cb_stub)
         
