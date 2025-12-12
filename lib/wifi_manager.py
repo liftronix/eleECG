@@ -4,10 +4,11 @@ import socket
 import time
 import urequests
 import ntptime
+import machine
 from logger import Logger  # Import logger module
 
 class WiFiManager:
-    def __init__(self, ssid: str, password: str):
+    def __init__(self, ssid: str, password: str, time_offset):
         self.ssid = ssid
         self.password = password
         self.wlan = network.WLAN(network.STA_IF)
@@ -21,6 +22,7 @@ class WiFiManager:
         self.time_sync = "Pending"
         self.time_sync_in_progress = False
         self.last_ntp_attempt = 0  # utime.ticks_ms()
+        self.timezone_offset = time_offset
 
     async def connect(self):
         """Connect to Wi-Fi with error handling and guarded reconnection logic."""
@@ -152,10 +154,19 @@ class WiFiManager:
         while attempt_count < max_attempts and self.time_sync != "Synchronized":
             try:
                 Logger.debug(f"NTP sync attempt {attempt_count + 1}")
-                ntptime.settime()
-                time.localtime(time.time() + 19800)
+                ntptime.settime() #sync to UTC
+                
+                utc_time = time.time()
+                local_time = time.localtime(utc_time + self.timezone_offset)
+                
+                rtc = machine.RTC()
+                rtc.datetime((
+                    local_time[0], local_time[1], local_time[2],
+                    local_time[6], local_time[3], local_time[4],
+                    local_time[5], 0
+                ))
                 self.time_sync = "Synchronized"
-                Logger.info("System time synced successfully.")
+                Logger.info(f"System time synced successfully. {time.localtime()}")
                 break
             except Exception as e:
                 Logger.warn(f"NTP sync failed: {e}")

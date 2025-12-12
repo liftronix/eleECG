@@ -1,16 +1,16 @@
 {
-  "version": "0.4.44",
+  "version": "0.4.45",
   "files": {
     "config.json": {
-      "sha256": "3ae006ebbda262c7263f4cba79c3bab394f0457b0d8c985bc39f2aea73b6e0d6",
-      "size": 484
+      "sha256": "c35ce44c94b63cb12002dada1a541d5facef2f26269c02ffc1032284a095e511",
+      "size": 590
     },
     "main.py": {
-      "sha256": "7f0e3f0c04b25f7a8a01cddb09d581a4c9428c7d993a79c39704dfd814bdf7fd",
-      "size": 13326
+      "sha256": "e64257856ccca8d1923bb282fdcef8764686f6cec94e0c79c82ff67ea1cceaa8",
+      "size": 13561
     },
     "version.txt": {
-      "sha256": "73ad05d6b0828e5cfce16ba8ad15f9c8816354280f3e8da8832f68c4bc85f326",
+      "sha256": "eb54f6943af0ebd5702a116a9838d03018d06a9445cc0393bacac1308ab993d2",
       "size": 6
     },
     "lib/ahtx0.py": {
@@ -90,8 +90,8 @@
       "size": 1806
     },
     "lib/wifi_manager.py": {
-      "sha256": "e0f9677342f941f83aa08457d504ebc559eec87c1e4d54d739ff738c85fbd14f",
-      "size": 7867
+      "sha256": "129601ae1ed2d345072ddc91553d0c40c6a148ee5bfa0ab89f72bc529d617740",
+      "size": 8333
     },
     "lib/scaled_ui/button_handler.py": {
       "sha256": "6b1d548c441bbe49324eecc8627ff20c618a1e57d2c56ad19dc00509dabb1d29",

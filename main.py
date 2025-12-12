@@ -56,10 +56,13 @@ oled = init_display()
 ui = OLED_UI(oled, scale=2)
 ui.show_message(f"ELE-ECG\n{get_local_version()}")
 
+offset_hours = int(config.get("timezone").get("offset_hours"))
+offset_mins = int(config.get("timezone").get("offset_minutes"))
 # 📶 Wi-Fi Manager
 wifi = WiFiManager(
     ssid=config.get("wifi", {}).get("ssid", ""),
-    password=config.get("wifi", {}).get("password", "")
+    password=config.get("wifi", {}).get("password", ""),    
+    time_offset=int(config.get("timezone").get("offset_sign"))*(offset_hours*3600 + offset_mins*60)
 )
 wifi.start(online_lock)
 
