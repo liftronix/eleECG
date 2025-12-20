@@ -3,6 +3,7 @@
 import uos
 import gc
 import asyncio
+import logger
 
 # --- Configuration ---
 BASELINE_IDLE_TICKS = 16683  # Measured 100% idle reference, Pico2W
@@ -52,7 +53,7 @@ async def monitor_resources():
         snapshot = _idle_counter
         await asyncio.sleep(MONITOR_INTERVAL)
         ticks = _idle_counter - snapshot
-        print(get_cpu_usage(ticks))
-        print(memory_usage(full=True))
-        print(flash_usage())
-        print("—" * 40)
+        logger.debug(get_cpu_usage(ticks))
+        logger.debug(memory_usage(full=True))
+        logger.debug(flash_usage())
+        logger.debug("—" * 40)

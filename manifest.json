@@ -1,16 +1,16 @@
 {
-  "version": "0.4.45",
+  "version": "0.4.46",
   "files": {
     "config.json": {
       "sha256": "c35ce44c94b63cb12002dada1a541d5facef2f26269c02ffc1032284a095e511",
       "size": 590
     },
     "main.py": {
-      "sha256": "e64257856ccca8d1923bb282fdcef8764686f6cec94e0c79c82ff67ea1cceaa8",
-      "size": 13561
+      "sha256": "f7b279c8096ba86c131468e61ba767692679bf1af8f61437e4cad9533d91a282",
+      "size": 13562
     },
     "version.txt": {
-      "sha256": "eb54f6943af0ebd5702a116a9838d03018d06a9445cc0393bacac1308ab993d2",
+      "sha256": "8e36a3e9865122a6b50c7ab8984c8950cc7d91e81fc211b17a1aad916a2c54cb",
       "size": 6
     },
     "lib/ahtx0.py": {
@@ -21,9 +21,13 @@
       "sha256": "6a6d5bb016282003d7bf276cceacf4ee6b43dd38e7c00b4195521ddb84d7de02",
       "size": 241
     },
+    "lib/config_manager.py": {
+      "sha256": "b86a2ead0115ff482722693a3424470f91d9d10783d1857965514363bd79e536",
+      "size": 16247
+    },
     "lib/core1_manager.py": {
-      "sha256": "0f48629e3111df8179f2963842f066cc1fe5932d9be0e70fdd909644f25676f9",
-      "size": 12682
+      "sha256": "d658cd9cefa5451ea7038a062de20436b71948ed143b3a7f9027ab81404b52f5",
+      "size": 12837
     },
     "lib/cpu_baseline.py": {
       "sha256": "4c6063a0fd5c4452e5caccc083a4d6e26575d81fced8fae8fb18867c7591fc91",
@@ -42,8 +46,8 @@
       "size": 1302
     },
     "lib/logger.py": {
-      "sha256": "ba8824eab01e61dda2bed4090cbdbef1227bf5fade736df95b2221721d4a2fce",
-      "size": 5225
+      "sha256": "1214451f609c8674f99526b16f7a5e59122d3a8e45a661a6488e20130a71cedd",
+      "size": 5226
     },
     "lib/mpu6050_minimal.py": {
       "sha256": "f9bec1e68a4c9243978d54a6761f5641998b56ca2f5cd9f97e79f26cafd0621d",
@@ -74,8 +78,8 @@
       "size": 161
     },
     "lib/shared_state.py": {
-      "sha256": "c19a4c0b83ce370adf95b8519ab29665be29862cc63323973d374b34e7ebf6a4",
-      "size": 698
+      "sha256": "f6b2c975803d50cb94b9705e1aacd9cb64ec418a441fb80f19852933a14cc1a7",
+      "size": 988
     },
     "lib/simplequeue.py": {
       "sha256": "24e1047b02a44883cbde9eaf33a6da843a59bc90efb2bc788003a110f640dbbe",
@@ -86,8 +90,8 @@
       "size": 4946
     },
     "lib/sysmon.py": {
-      "sha256": "7f169f3aa4a22c89a7ba302979735deefcd1f15e0d7102322c52035671ba2fbd",
-      "size": 1806
+      "sha256": "18fd5ab44c305a212970072e2e751b1faf18e2fda58d6495a311f92434ba4ca0",
+      "size": 1849
     },
     "lib/wifi_manager.py": {
       "sha256": "129601ae1ed2d345072ddc91553d0c40c6a148ee5bfa0ab89f72bc529d617740",

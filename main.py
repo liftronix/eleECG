@@ -1,3 +1,4 @@
+print('Starting Core0')
 import uasyncio as asyncio
 import machine, gc, os, uos, time, logger, _thread
 from machine import Pin, I2C, WDT, Timer, RTC
@@ -18,9 +19,15 @@ from wifi_manager import WiFiManager
 from sdcard_manager import SDCardManager
 from datalogger import DataLogger
 from laser_module import LaserModule
-from config_loader import load_config
 
-config = load_config()
+from config_manager import ConfigManager
+# Initialize config manager with default paths; pass OLED if you want user-facing messages
+cm = ConfigManager(
+    sd_path="/sd/config.json",
+    flash_path="/config.json",
+    version_path="/version.txt",
+    oled=None
+)
 
 if "reset_timestamp.txt" in os.listdir("/"):
     with open("/reset_timestamp.txt", "r") as f:
@@ -51,52 +58,16 @@ init_power_pin()
 from scaled_ui.oled_ui import OLED_UI
 from scaled_ui.button_handler import ButtonHandler
 
-
 oled = init_display()
 ui = OLED_UI(oled, scale=2)
 ui.show_message(f"ELE-ECG\n{get_local_version()}")
 
-offset_hours = int(config.get("timezone").get("offset_hours"))
-offset_mins = int(config.get("timezone").get("offset_minutes"))
-# 📶 Wi-Fi Manager
-wifi = WiFiManager(
-    ssid=config.get("wifi", {}).get("ssid", ""),
-    password=config.get("wifi", {}).get("password", ""),    
-    time_offset=int(config.get("timezone").get("offset_sign"))*(offset_hours*3600 + offset_mins*60)
-)
-wifi.start(online_lock)
-
 # 🕒 REPL-safe boot delay
-print("⏳ Boot delay... press Stop in Thonny to break into REPL")
+logger.debug("⏳ Boot delay... press Stop in Thonny to break into REPL")
 time.sleep(3)
 
 # --- System Timer ---
 sys_timer = init_sys_timer(online_lock)
-
-# 🧮 Config Sync
-def sync_config_if_changed(sd_path="/sd/config.json", flash_path="/config.json", file_name="config.json"):
-    try:
-        if file_name not in os.listdir("/sd"):
-            logger.warn("No config.json found on SD card")
-            return
-
-        with open(sd_path, "rb") as f_sd:
-            sd_data = f_sd.read()
-        try:
-            with open(flash_path, "rb") as f_flash:
-                flash_data = f_flash.read()
-        except OSError:
-            flash_data = b""
-
-        if sd_data != flash_data:
-            with open(flash_path, "wb") as f:
-                f.write(sd_data)
-            logger.info("Updated config.json from SD card")
-        else:
-            logger.info("config.json is already up to date")
-    except Exception as e:
-        logger.error(f"Failed to sync config.json: {e}")
-
 
 latest_sensor_data = {}
 latest_sensor_lock = asyncio.Lock()
@@ -181,7 +152,7 @@ def log_payload_size(payload):
 
 # MQTT Publish
 mqtt_seq_counter = 0
-async def send_to_thingsboard(client, ota_lock, online_lock, ui):
+async def send_to_thingsboard(client, ota_lock, online_lock, ui, config):
     global mqtt_seq_counter
     while True:
         try:
@@ -237,7 +208,11 @@ async def send_to_thingsboard(client, ota_lock, online_lock, ui):
                         payload[f"{sensor}_value"] = value_dict.get("error", str(value_dict))
 
                 client.send_telemetry(payload, qos=0)
-                logger.info(f"📤 Telemetry sent: {payload}")
+                #logger.info(f"📤 Telemetry sent: {payload}")
+                logger.info("📤 Telemetry sent:")
+                for key, value in payload.items():
+                    logger.info(f"  {key}: {value}")
+
                 logger.warn(f"Payload size = {log_payload_size(payload)} bytes")
             except Exception as e:
                 logger.error(f"⚠️ MQTT Publish Error: {e}")
@@ -245,7 +220,8 @@ async def send_to_thingsboard(client, ota_lock, online_lock, ui):
         except asyncio.TimeoutError:
             logger.warn("⏳ Online check timed out — skipping telemetry this round")
             
-        publish_interval = int(config.get("mqtt").get("publish_interval_sec"))
+        #publish_interval = int(config.get("mqtt").get("publish_interval_sec"))
+        publish_interval = int(config["mqtt"]["publish_interval_sec"])
         await asyncio.sleep(max(1, publish_interval))
 
 
@@ -294,6 +270,15 @@ async def auto_refresh_ui(ui, ota_lock, online_lock, interval=2):
         await asyncio.sleep(interval)
 
 
+def log_dict(d, prefix="  "):
+    for k, v in d.items():
+        if isinstance(v, dict):
+            logger.debug(f"{prefix}{k}:")
+            log_dict(v, prefix + "  ")
+        else:
+            logger.debug(f"{prefix}{k} = {v}")
+            
+            
 # 🚀 Main Entry Point
 async def main():    
     logger.info(f"🧾 Running firmware version: {get_local_version()}")
@@ -315,12 +300,27 @@ async def main():
     # SD Card and Data Logger
     sd = SDCardManager()
     await sd.mount()
-    sync_config_if_changed()
+    #sync_config_if_changed()
     asyncio.create_task(sd.auto_manage())
+    cfg = cm.load()
+    # Print top-level keys line by line
+    logger.debug("Config Data:")
+    log_dict(cfg)
 
     datalogger = DataLogger(sd, buffer_size=10, flush_interval_s=5)
     asyncio.create_task(datalogger.run())
     asyncio.create_task(drain_sensor_data(datalogger, ota_lock))
+    
+    offset_hours = int(cfg["timezone"]["offset_hours"])
+    offset_mins = int(cfg["timezone"]["offset_minutes"])
+    offset_sign = int(cfg["timezone"]["offset_sign"])
+    # 📶 Wi-Fi Manager
+    wifi = WiFiManager(
+        ssid = cfg["wifi"]["ssid"],
+        password = cfg["wifi"]["password"],    
+        time_offset=int(offset_sign*(offset_hours*3600 + offset_mins*60))
+    )
+    wifi.start(online_lock)
     
     # Laser
     laser = LaserModule()
@@ -332,7 +332,7 @@ async def main():
         asyncio.create_task(drain_laser_data(laser, laser_snapshot, datalogger, ota_lock))
     
     # Core 1 sensors
-    _thread.start_new_thread(core1_main, ())
+    _thread.start_new_thread(core1_main, (cfg,))
     logger.info("🟢 Core 1 sensor sampling started.")
     
     #UI-Display
@@ -347,18 +347,17 @@ async def main():
     buttons.attach_ui(ui)
     buttons.start()
     
-    
     #MQTT Initialization
-    mqttHost = config.get("mqtt").get("host")
-    mqttKey = config.get("mqtt").get("key")
+    mqttHost = cfg["mqtt"]["host"]
+    mqttKey = cfg["mqtt"]["key"]
     client = TBDeviceMqttClient(mqttHost, access_token = mqttKey)
-    asyncio.create_task(send_to_thingsboard(client, ota_lock, online_lock, ui))
+    asyncio.create_task(send_to_thingsboard(client, ota_lock, online_lock, ui, cfg))
     
     while True:
         reset_watchdog_timer() # Clear WDT to prevent reset
         status = wifi.get_status()
         logger.info(f"WiFi Status: {status['WiFi']}, Internet: {status['Internet']}")
-        print(f"IP Address: {wifi.get_ip_address()}")
+        logger.debug(f"IP Address: {wifi.get_ip_address()}")
        
         if not ota_lock.is_set():
             logger.debug("📴 Sensor paused due to OTA activity")

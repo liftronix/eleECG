@@ -20,7 +20,7 @@ class Logger:
 
     # Output toggles
     REPL_ENABLED = True
-    STORAGE_ENABLED = True
+    STORAGE_ENABLED = False
     UART_ENABLED = True
 
     # UART instance (deferred setup)

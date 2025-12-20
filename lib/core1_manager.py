@@ -1,3 +1,5 @@
+print('Starting Core1')
+
 from machine import ADC, Pin, I2C, Timer
 from mpu6050_minimal import MPU6050
 from shared_state import push_sensor_data
@@ -5,9 +7,9 @@ import utime, math, micropython
 import random
 from time import ticks_ms, ticks_diff
 import logger
-from config_loader import load_config
 
-config = load_config()
+POWER_RESTORE_DEBOUNCE_MS = 30 * 1000  # 30 seconds
+LOW_POWER_DELAY_MS = 10 * 60 * 1000  # 10 minutes
 
 micropython.alloc_emergency_exception_buf(100)
 
@@ -22,7 +24,7 @@ power_timer = None
 AUDIO_PIN = 26
 SAMPLE_COUNT = 512
 SAMPLE_DELAY_US = 50  # ~20 kHz sampling
-DB_REF = 0.707        # Reference voltage for dB scaling
+DB_REF = 0.360 #0.707        # Reference voltage for dB scaling
 PTP_THRESHOLD = 0.05  # Minimum peak-to-peak voltage to flag activity
 
 adc = ADC(Pin(AUDIO_PIN))
@@ -290,18 +292,6 @@ power_state = {
     'mains_restored_at': None
 }
 
-try:
-    POWER_RESTORE_DEBOUNCE_MS = int(config.get('low_power').get('restore_debounce_sec'))*1000
-except:
-    POWER_RESTORE_DEBOUNCE_MS = 30 * 1000  # 30 seconds
-logger.info(f"POWER_RESTORE_DEBOUNCE_MS: {POWER_RESTORE_DEBOUNCE_MS}")
-
-try:
-    LOW_POWER_DELAY_MS = int(config.get('low_power').get('battery_time_mins'))*60*1000
-except:
-    LOW_POWER_DELAY_MS = 20 * 60 * 1000  # 20 minutes
-logger.info(f"LOW_POWER_DELAY_MS: {LOW_POWER_DELAY_MS}")
-
 TICKS_AT_RESET = 15000 #To track if a reset happened in Low Power Mode
 
 def power_cb_stub(timer):
@@ -351,11 +341,23 @@ def power_cb_scheduled(_):
     except Exception as e:
         push_sensor_data({'sensor': 'Mains', 'error': str(e)})
 
-
-
 # --- Core 1 Entry Point ---
-def core1_main():
+def core1_main(cfg):
     global mic_timer, mpu_timer, mpu_temp_timer, door_timer
+    global POWER_RESTORE_DEBOUNCE_MS, LOW_POWER_DELAY_MS
+    
+    try:
+        POWER_RESTORE_DEBOUNCE_MS = int(cfg["low_power"]["restore_debounce_sec"]) * 1000
+    except Exception:
+        POWER_RESTORE_DEBOUNCE_MS = 30_000
+
+    try:
+        LOW_POWER_DELAY_MS = int(cfg["low_power"]["battery_time_mins"]) * 60 * 1000
+    except Exception:
+        LOW_POWER_DELAY_MS = 20 * 60 * 1000
+    
+    logger.info(f"POWER_RESTORE_DEBOUNCE_MS: {POWER_RESTORE_DEBOUNCE_MS}")
+    logger.info(f"LOW_POWER_DELAY_MS: {LOW_POWER_DELAY_MS}")
 
     mic_timer = Timer()
     mic_timer.init(freq=1, mode=Timer.PERIODIC, callback=mic_cb_stub)
